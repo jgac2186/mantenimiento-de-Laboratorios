@@ -1,0 +1,18 @@
+{
+  "short_name": "MantoLab",
+  "name": "MantoLab - Control de Mantenimiento",
+  "description": "Aplicación inteligente y offline para control de mantenimiento de laboratorios y talleres.",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "./index.html",
+  "background_color": "#0B0F19",
+  "theme_color": "#111827",
+  "display": "standalone",
+  "orientation": "portrait-primary"
+}

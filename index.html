@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MantoLab - Control de Mantenimiento</title>
+  
+  <!-- SEO & PWA Meta Tags -->
+  <meta name="description" content="Sistema inteligente y offline para control de mantenimiento de laboratorios y talleres.">
+  <meta name="theme-color" content="#111827">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <link rel="apple-touch-icon" href="icon.svg">
+  
+  <!-- Google Fonts - Outfit & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- CSS Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- App Wrapper -->
+  <div class="app-container">
+    
+    <!-- Sidebar / Navigation -->
+    <aside class="sidebar" id="app-sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <svg class="logo-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="32" height="32">
+            <defs>
+              <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#10b981;" />
+                <stop offset="100%" style="stop-color:#06b6d4;" />
+              </linearGradient>
+            </defs>
+            <circle cx="256" cy="256" r="240" fill="none" stroke="url(#logoGrad)" stroke-width="32" />
+            <path d="M192,256 L320,256" stroke="url(#logoGrad)" stroke-width="40" stroke-linecap="round" />
+            <path d="M256,192 L256,320" stroke="url(#logoGrad)" stroke-width="40" stroke-linecap="round" />
+          </svg>
+          <span class="logo-text">Manto<span>Lab</span></span>
+        </div>
+      </div>
+      
+      <!-- Workshop Selector (Dynamic & Scaleable) -->
+      <div class="workshop-selector-container">
+        <label for="workshop-select" class="selector-label">Área Activa</label>
+        <div class="custom-select-wrapper">
+          <select id="workshop-select" class="workshop-select">
+            <option value="manufactura" selected>🛠️ Taller de Manufactura</option>
+            <option value="ciencias_basicas" disabled>🧪 Lab. Ciencias Básicas (Próximamente)</option>
+            <option value="procesos" disabled>🏭 Taller de Procesos (Próximamente)</option>
+            <option value="neumatica" disabled>💨 Taller de Neumática (Próximamente)</option>
+            <option value="automatizacion" disabled>🤖 Taller de Automatización (Próximamente)</option>
+          </select>
+        </div>
+      </div>
+      
+      <!-- Nav Links -->
+      <nav class="nav-menu">
+        <button class="nav-item active" data-tab="dashboard" id="btn-tab-dashboard">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>
+          <span>Dashboard</span>
+        </button>
+        <button class="nav-item" data-tab="inventario" id="btn-tab-inventario">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+          <span>Maquinaria e Inventario</span>
+        </button>
+        <button class="nav-item" data-tab="preventivo" id="btn-tab-preventivo">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          <span>Mantenimiento Preventivo</span>
+          <span class="badge badge-alert" id="preventivos-badge-count" style="display:none;">0</span>
+        </button>
+        <button class="nav-item" data-tab="correctivo" id="btn-tab-correctivo">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+          <span>Reportes de Falla (Correctivo)</span>
+          <span class="badge badge-error" id="correctivos-badge-count" style="display:none;">0</span>
+        </button>
+        <button class="nav-item" data-tab="config" id="btn-tab-config">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          <span>Configuración e Insumos</span>
+        </button>
+      </nav>
+      
+      <!-- Footer / PWA Install -->
+      <div class="sidebar-footer">
+        <button id="pwa-install-btn" class="btn btn-secondary btn-sm btn-block" style="display: none;">
+          📲 Instalar en Celular
+        </button>
+        <div class="user-profile">
+          <div class="avatar">JA</div>
+          <div class="user-info">
+            <p class="user-name">Ing. Juan Ayala</p>
+            <p class="user-role">Administrador</p>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      
+      <!-- Top Navbar Header -->
+      <header class="top-header">
+        <button class="menu-toggle" id="menu-toggle-btn" aria-label="Toggle Menu">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
+        <div class="header-title">
+          <h1 id="view-title">Dashboard</h1>
+          <p id="view-subtitle" class="text-muted">Resumen general del Taller de Manufactura</p>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-primary" id="btn-quick-correctivo">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            Reportar Falla
+          </button>
+        </div>
+      </header>
+
+      <!-- Views Container -->
+      <div class="view-content">
+
+        <!-- ==================== VIEW: DASHBOARD ==================== -->
+        <section id="view-dashboard" class="tab-view active">
+          <!-- Metric Cards Grid -->
+          <div class="metrics-grid">
+            <div class="metric-card glass-panel animate-fade-in">
+              <div class="metric-header">
+                <span class="metric-title">Equipos Totales</span>
+                <span class="metric-icon-wrapper bg-info-light">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#06b6d4" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+                </span>
+              </div>
+              <div class="metric-value" id="dash-total-equipos">6</div>
+              <div class="metric-footer">
+                <span class="text-success">✔ Taller de Manufactura</span>
+              </div>
+            </div>
+            
+            <div class="metric-card glass-panel animate-fade-in" style="animation-delay: 0.1s;">
+              <div class="metric-header">
+                <span class="metric-title">Operativos</span>
+                <span class="metric-icon-wrapper bg-success-light">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#10b981" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </span>
+              </div>
+              <div class="metric-value" id="dash-operativos">6</div>
+              <div class="metric-footer">
+                <span class="text-success" id="dash-percent-operativos">100% disponibles</span>
+              </div>
+            </div>
+
+            <div class="metric-card glass-panel animate-fade-in" style="animation-delay: 0.2s;">
+              <div class="metric-header">
+                <span class="metric-title">Fallas Activas</span>
+                <span class="metric-icon-wrapper bg-danger-light">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#f43f5e" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path></svg>
+                </span>
+              </div>
+              <div class="metric-value" id="dash-fallas">0</div>
+              <div class="metric-footer">
+                <span class="text-danger" id="dash-fallas-text">Ninguna crítica</span>
+              </div>
+            </div>
+
+            <div class="metric-card glass-panel animate-fade-in" style="animation-delay: 0.3s;">
+              <div class="metric-header">
+                <span class="metric-title">Preventivos Atrasados</span>
+                <span class="metric-icon-wrapper bg-warning-light">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#f59e0b" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                </span>
+              </div>
+              <div class="metric-value" id="dash-preventivos-atrasados">0</div>
+              <div class="metric-footer">
+                <span class="text-warning" id="dash-preventivos-text">Al día</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Actions & Panels -->
+          <div class="dashboard-panels-grid">
+            
+            <!-- Left Panel: Fallas Activas -->
+            <div class="glass-panel panel-card animate-fade-in" style="animation-delay: 0.4s;">
+              <div class="panel-header">
+                <h2>Fallas y Reportes Activos</h2>
+                <button class="btn btn-link btn-sm" id="dash-go-correctivos">Ver todos →</button>
+              </div>
+              <div class="panel-body" id="dash-active-correctives-list">
+                <!-- Dynamic Content or Empty State -->
+                <div class="empty-state">
+                  <div class="empty-icon">🎉</div>
+                  <h3>¡Sin fallas activas!</h3>
+                  <p>Todos los equipos se encuentran operando con normalidad.</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Panel: Próximos Mantenimientos Preventivos -->
+            <div class="glass-panel panel-card animate-fade-in" style="animation-delay: 0.5s;">
+              <div class="panel-header">
+                <h2>Próximas Tareas Preventivas</h2>
+                <button class="btn btn-link btn-sm" id="dash-go-preventivos">Agenda →</button>
+              </div>
+              <div class="panel-body" id="dash-upcoming-preventives-list">
+                <!-- Dynamic List -->
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <!-- ==================== VIEW: INVENTARIO ==================== -->
+        <section id="view-inventario" class="tab-view">
+          
+          <!-- Filters & Actions Header -->
+          <div class="filters-bar glass-panel">
+            <div class="search-input-wrapper">
+              <svg class="search-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <input type="text" id="inventario-search" placeholder="Buscar equipo por nombre o código...">
+            </div>
+            
+            <div class="filters-group">
+              <button class="filter-btn active" data-filter="todos">Todos</button>
+              <button class="filter-btn" data-filter="Operativo">Operativos</button>
+              <button class="filter-btn" data-filter="En Mantenimiento">En Mant.</button>
+              <button class="filter-btn" data-filter="Fuera de Servicio">Fuera Serv.</button>
+            </div>
+            
+            <button class="btn btn-primary" id="btn-add-equipo">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              Nuevo Equipo
+            </button>
+          </div>
+
+          <!-- Inventory Grid -->
+          <div class="equipment-grid" id="equipment-cards-grid">
+            <!-- Dynamic Equipment Cards -->
+          </div>
+        </section>
+
+
+        <!-- ==================== VIEW: PREVENTIVO ==================== -->
+        <section id="view-preventivo" class="tab-view">
+          <!-- Calendar/Agenda Header -->
+          <div class="agenda-header-panel glass-panel">
+            <div class="agenda-info">
+              <h2>Cronograma de Mantenimiento Preventivo</h2>
+              <p class="text-muted">Revisión periódica obligatoria para conservar garantías y operatividad.</p>
+            </div>
+            <div class="agenda-legend">
+              <span class="legend-item"><span class="dot dot-success"></span> Al día</span>
+              <span class="legend-item"><span class="dot dot-warning"></span> Próximo (menos de 7 días)</span>
+              <span class="legend-item"><span class="dot dot-danger"></span> Atrasado</span>
+            </div>
+          </div>
+
+          <!-- Preventative Tasks List -->
+          <div class="preventives-list-container" id="preventives-tasks-list">
+            <!-- Dynamic tasks -->
+          </div>
+        </section>
+
+
+        <!-- ==================== VIEW: CORRECTIVO ==================== -->
+        <section id="view-correctivo" class="tab-view">
+          
+          <div class="corrective-header-bar">
+            <div class="header-info">
+              <h2>Bitácora de Mantenimiento Correctivo</h2>
+              <p class="text-muted">Historial y estado de los reportes de falla de maquinaria.</p>
+            </div>
+            <button class="btn btn-primary" id="btn-reportar-falla">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+              Registrar Reporte de Falla
+            </button>
+          </div>
+
+          <div class="corrective-panels-layout">
+            <!-- Active Tickets -->
+            <div class="glass-panel ticket-panel">
+              <div class="panel-header">
+                <h3>🛠️ Tickets Abiertos / En Proceso</h3>
+                <span class="badge badge-neutral" id="open-tickets-count">0</span>
+              </div>
+              <div class="tickets-list" id="open-tickets-list">
+                <!-- Dynamic Content -->
+              </div>
+            </div>
+
+            <!-- Historical Resolved Tickets -->
+            <div class="glass-panel ticket-panel">
+              <div class="panel-header">
+                <h3>✔ Historial de Fallas Resueltas</h3>
+                <span class="badge badge-neutral" id="resolved-tickets-count">0</span>
+              </div>
+              <div class="tickets-list" id="resolved-tickets-list">
+                <!-- Dynamic Content -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- ==================== VIEW: CONFIG / INSUMOS ==================== -->
+        <section id="view-config" class="tab-view">
+          
+          <div class="config-grid">
+            
+            <!-- Insumos & Repuestos Card -->
+            <div class="glass-panel config-card">
+              <div class="card-title-header">
+                <h2>📦 Insumos y Repuestos (Consumibles)</h2>
+                <button class="btn btn-secondary btn-sm" id="btn-add-insumo">+ Agregar Insumo</button>
+              </div>
+              <p class="text-muted" style="margin-bottom:1.5rem;">Gestión de existencias de consumibles críticos para el taller de manufactura.</p>
+              
+              <div class="table-responsive">
+                <table class="data-table" id="insumos-table">
+                  <thead>
+                    <tr>
+                      <th>Código</th>
+                      <th>Insumo / Repuesto</th>
+                      <th>Stock Actual</th>
+                      <th>Mínimo</th>
+                      <th>Estado</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody id="insumos-table-body">
+                    <!-- Dynamic Rows -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Backup & Reports -->
+            <div class="glass-panel config-card">
+              <h2>💾 Reportes y Copias de Seguridad</h2>
+              <p class="text-muted" style="margin-bottom:1.5rem;">Genera un reporte automático de las actividades realizadas durante el mes actual. Además, te recomendamos exportar una copia de seguridad JSON regularmente para resguardar tu base de datos completa.</p>
+              
+              <div class="backup-actions">
+                <button class="btn btn-lg btn-block" id="btn-export-monthly-report" style="background: var(--color-accent); color: white; border: none; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.2);">
+                  📊 Descargar Reporte de Actividades del Mes (.csv)
+                </button>
+
+                <button class="btn btn-success btn-lg btn-block" id="btn-export-backup">
+                  📥 Exportar Copia de Seguridad Completa (.json)
+                </button>
+                
+                <div class="restore-container">
+                  <label for="restore-file-input" class="restore-label">
+                    📤 Importar / Restaurar Copia de Seguridad
+                  </label>
+                  <input type="file" id="restore-file-input" accept=".json" style="display:none;">
+                  <button class="btn btn-secondary btn-lg btn-block" onclick="document.getElementById('restore-file-input').click()">
+                    Seleccionar Archivo de Respaldo (.json)
+                  </button>
+                  <p class="restore-help-text">Al importar, se sobrescribirán los datos actuales con los del archivo de respaldo.</p>
+                </div>
+              </div>
+
+              <div class="system-status-box">
+                <h4>Información de Almacenamiento</h4>
+                <ul>
+                  <li><strong>Plataforma:</strong> PWA Local WebStorage</li>
+                  <li><strong>Taller Activo:</strong> Taller de Manufactura</li>
+                  <li><strong>Estado de Conexión:</strong> <span id="connection-status-badge" class="badge badge-success">Online</span></li>
+                </ul>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- ==================== MODALS CONTAINER ==================== -->
+  
+  <!-- Modal: Agregar/Editar Equipo -->
+  <div class="modal-overlay" id="modal-equipo">
+    <div class="modal-card animate-scale-in">
+      <div class="modal-header">
+        <h2 id="modal-equipo-title">Agregar Nuevo Equipo</h2>
+        <button class="modal-close-btn">&times;</button>
+      </div>
+      <form id="form-equipo" class="modal-form">
+        <input type="hidden" id="form-equipo-id-original">
+        
+        <div class="form-group">
+          <label for="eq-codigo">Código de Inventario (Único) *</label>
+          <input type="text" id="eq-codigo" placeholder="Ej: MAN-TOR-03" required>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="eq-nombre">Nombre del Equipo *</label>
+            <input type="text" id="eq-nombre" placeholder="Ej: Rectificadora de Superficies" required>
+          </div>
+          <div class="form-group">
+            <label for="eq-marca">Marca / Modelo *</label>
+            <input type="text" id="eq-marca" placeholder="Ej: Cheval / H-12" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="eq-categoria">Categoría *</label>
+            <select id="eq-categoria" required>
+              <option value="Torno">Torno</option>
+              <option value="Fresadora">Fresadora</option>
+              <option value="Esmeril">Esmeril</option>
+              <option value="Soldadura">Soldadura / Solda</option>
+              <option value="Taladro">Taladro</option>
+              <option value="Otra">Otra Maquinaria</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="eq-ubicacion">Ubicación Física *</label>
+            <input type="text" id="eq-ubicacion" placeholder="Ej: Zona A - Mecanizado" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="eq-frecuencia">Frecuencia de Mantenimiento Preventivo *</label>
+            <select id="eq-frecuencia" required>
+              <option value="30">Cada mes (30 días)</option>
+              <option value="60">Cada 2 meses (60 días)</option>
+              <option value="90" selected>Cada 3 meses (90 días)</option>
+              <option value="180">Cada 6 meses (180 días)</option>
+              <option value="365">Cada año (365 días)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="eq-fecha-adq">Fecha de Adquisición</label>
+            <input type="date" id="eq-fecha-adq">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="eq-preventivo-check">Instrucciones de Mantenimiento Preventivo (Una por línea)</label>
+          <textarea id="eq-preventivo-check" rows="3" placeholder="Limpieza de bancada y guías&#10;Verificación de nivel de aceite lubricante&#10;Revisión de conexiones eléctricas"></textarea>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary modal-cancel-btn">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Guardar Equipo</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Registrar Reporte de Falla (Correctivo) -->
+  <div class="modal-overlay" id="modal-correctivo">
+    <div class="modal-card animate-scale-in">
+      <div class="modal-header">
+        <h2>Reportar Falla en Maquinaria</h2>
+        <button class="modal-close-btn">&times;</button>
+      </div>
+      <form id="form-correctivo" class="modal-form">
+        
+        <div class="form-group">
+          <label for="corr-equipo">Seleccionar Equipo Afectado *</label>
+          <select id="corr-equipo" required>
+            <!-- Dynamic dropdown of available machines -->
+          </select>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="corr-reportador">Reportado Por (Tu Nombre / Profesor) *</label>
+            <input type="text" id="corr-reportador" value="Ing. Juan Ayala" required>
+          </div>
+          <div class="form-group">
+            <label for="corr-gravedad">Gravedad del Fallo *</label>
+            <select id="corr-gravedad" required>
+              <option value="Baja">Baja (Funciona con limitaciones)</option>
+              <option value="Media" selected>Media (Falla pero no detiene el taller)</option>
+              <option value="Alta">Alta / Crítica (Detiene máquina/taller)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="corr-descripcion">Descripción Detallada de la Falla *</label>
+          <textarea id="corr-descripcion" rows="4" placeholder="Escribe detalladamente qué sucede. Ej: El motor hace ruido extraño y salta el disyuntor al encender." required></textarea>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary modal-cancel-btn">Cancelar</button>
+          <button type="submit" class="btn btn-danger">Levantar Reporte</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Resolver Falla (Cerrar Ticket Correctivo) -->
+  <div class="modal-overlay" id="modal-resolver-correctivo">
+    <div class="modal-card animate-scale-in">
+      <div class="modal-header">
+        <h2>Resolver y Cerrar Reporte de Falla</h2>
+        <button class="modal-close-btn">&times;</button>
+      </div>
+      <form id="form-resolver-correctivo" class="modal-form">
+        <input type="hidden" id="form-res-id-ticket">
+        
+        <div class="info-block" id="form-res-info-ticket">
+          <!-- Short summary of ticket being resolved -->
+        </div>
+
+        <div class="form-group">
+          <label for="res-acciones">Acciones Tomadas / Solución Aplicada *</label>
+          <textarea id="res-acciones" rows="4" placeholder="Especifica qué reparaste. Ej: Se reemplazaron las escobillas de carbón y se ajustó el eje del cojinete." required></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="res-costo">Costo de la Reparación ($ USD / Local)</label>
+            <input type="number" id="res-costo" min="0" step="0.01" placeholder="0.00" value="0">
+          </div>
+          <div class="form-group">
+            <label for="res-fecha">Fecha de Cierre de Falla *</label>
+            <input type="date" id="res-fecha" required>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary modal-cancel-btn">Cancelar</button>
+          <button type="submit" class="btn btn-success">Guardar y Marcar Operativo</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Ver Ficha Técnica de Maquinaria -->
+  <div class="modal-overlay" id="modal-ficha-tecnica">
+    <div class="modal-card modal-large animate-scale-in">
+      <div class="modal-header">
+        <h2 id="ficha-nombre">Ficha Técnica de Equipo</h2>
+        <button class="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body" id="ficha-body">
+        <!-- Dynamic Detail Layout -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary modal-close-btn">Cerrar Ficha</button>
+        <button class="btn btn-primary" id="btn-ficha-editar">Editar Ficha</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Agregar/Editar Insumo -->
+  <div class="modal-overlay" id="modal-insumo">
+    <div class="modal-card animate-scale-in">
+      <div class="modal-header">
+        <h2 id="modal-insumo-title">Agregar Nuevo Insumo</h2>
+        <button class="modal-close-btn">&times;</button>
+      </div>
+      <form id="form-insumo" class="modal-form">
+        <input type="hidden" id="form-insumo-id-original">
+        
+        <div class="form-group">
+          <label for="ins-codigo">Código de Insumo (Único) *</label>
+          <input type="text" id="ins-codigo" placeholder="Ej: INS-ACE-68" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="ins-nombre">Nombre del Insumo / Repuesto *</label>
+          <input type="text" id="ins-nombre" placeholder="Ej: Disco abrasivo 7''" required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="ins-cantidad">Stock / Cantidad Actual *</label>
+            <input type="number" id="ins-cantidad" min="0" step="0.1" placeholder="0" required>
+          </div>
+          <div class="form-group">
+            <label for="ins-minimo">Stock Mínimo de Alerta *</label>
+            <input type="number" id="ins-minimo" min="0" step="0.1" placeholder="0" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="ins-unidad">Unidad de Medida *</label>
+            <input type="text" id="ins-unidad" placeholder="Ej: Litros, Piezas, Juegos" required>
+          </div>
+          <div class="form-group">
+            <label for="ins-equipos">Equipos Compatibles</label>
+            <input type="text" id="ins-equipos" placeholder="Ej: MAN-TOR-01, MAN-ESM-01">
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary modal-cancel-btn">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Guardar Insumo</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="app.js"></script>
+</body>
+</html>
