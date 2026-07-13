@@ -1,42 +1,57 @@
 # Documentación del Proyecto: MantoLab PWA
-*Sistema Integral de Control de Mantenimiento para Laboratorios y Talleres*
+*Sistema Integral de Control de Mantenimiento y Reservas para Laboratorios*
 
 ---
 
 ## 1. Objetivo del Proyecto
-El objetivo principal de **MantoLab** es digitalizar, centralizar y automatizar el registro y la planificación del mantenimiento (preventivo y correctivo) de los 4 talleres (Manufactura, Procesos, Neumática, Automatización) y el Laboratorio de Ciencias Básicas. 
+El objetivo principal de **MantoLab** es digitalizar, centralizar y automatizar el registro y la planificación del mantenimiento (preventivo y correctivo), además de proveer un canal de control para el agendamiento y la **reserva de laboratorios** (Taller de Manufactura, Lab. Ciencias Básicas, Taller de Procesos, Neumática y Automatización).
 
-Busca **eliminar el uso de papel o hojas de cálculo propensas a errores**, reducir el tiempo de inactividad de las máquinas por fallas (downtime), y asegurar que las herramientas y equipos costosos extiendan su vida útil mediante un seguimiento riguroso y automatizado de su mantenimiento periódico.
+El sistema busca **eliminar por completo el uso de papel u hojas de cálculo propensas a errores**, reducir el tiempo de inactividad de las máquinas por fallas (downtime), y facilitar a los estudiantes un canal directo para reservar el espacio de trabajo de manera ordenada, evitando conflictos de horarios.
 
-## 2. ¿A quién va dirigido? (Público Objetivo)
-El sistema está diseñado específicamente para entornos técnicos educativos o industriales. Sus usuarios principales son:
+---
 
-* **Administradores / Coordinadores de Taller:** Quienes supervisan la operatividad de todos los laboratorios, planifican las compras de insumos y revisan las métricas globales de funcionamiento de la maquinaria.
-* **Técnicos de Mantenimiento:** El personal encargado de ejecutar las órdenes de lubricación, calibración, reemplazo de piezas o reparación física de las máquinas.
-* **Docentes y Ayudantes de Práctica:** Personal que utiliza los equipos diariamente y que necesita una forma rápida de reportar anomalías o fallas encontradas durante el desarrollo de una clase práctica.
+## 2. Roles y Acceso al Sistema
 
-## 3. ¿Cómo Funciona MantoLab? (Arquitectura Técnica)
-MantoLab es una **PWA (Progressive Web App)** estructurada como una *Single Page Application (SPA)*. Funciona bajo un modelo técnico **"Offline-First"**:
+MantoLab implementa una división clara de funciones basada en perfiles individuales con almacenamiento offline:
 
-* **Almacenamiento Local Seguro (LocalStorage):** La aplicación no requiere de un servidor externo de base de datos en la nube ni de una conexión a internet constante. Toda la información de equipos, fechas, fallas e historial se guarda directamente en la memoria del navegador del dispositivo de forma segura.
-* **Sistema Reactivo y Automatizado:** El sistema de calendario calcula las fechas en tiempo real. Por ejemplo, si un torno requiere mantenimiento cada 90 días, al marcar la tarea como "Completada", el sistema calcula la siguiente fecha automáticamente y organiza la agenda mediante un semáforo visual (verde para al día, amarillo para alerta de vencimiento y rojo para tareas atrasadas).
-* **Portabilidad y Uso en Taller (Service Worker):** A través del uso de un `Service Worker`, los recursos estáticos de la interfaz gráfica se descargan y almacenan en el caché del celular o la computadora. Esto permite que el usuario pueda abrir la aplicación e interactuar con ella incluso en zonas del taller (como sótanos o bóvedas) donde no haya señal celular ni Wi-Fi.
-* **Copias de Seguridad (JSON Backups):** Para evitar la pérdida de información ante limpiezas de caché del navegador, el sistema cuenta con un motor de importación y exportación de bases de datos en formato `.json` puro.
+* **Estudiantes (Modo Consulta y Reservas)**:
+  * Registran su perfil la primera vez utilizando su **Matrícula / Cédula** y **Nombre Completo**.
+  * Pueden consultar la disponibilidad y el estado de la maquinaria en tiempo real (Operativo / Fuera de Servicio).
+  * Pueden **Reportar Fallas** encontradas durante las clases o prácticas.
+  * Tienen acceso al panel de **Reservas de Laboratorio** para solicitar bloques horarios para prácticas libres o desarrollo de proyectos.
+* **Administradores y Técnicos (Control Total)**:
+  * Acceso protegido por un **PIN de seguridad de 4 dígitos** (por defecto `1234`).
+  * Supervisión de la operatividad global del taller, métricas de fallas y tareas periódicas.
+  * Control del inventario de maquinaria y stock mínimo de insumos/consumibles.
+  * **Aprobación o rechazo de solicitudes de reservas** enviadas por los estudiantes.
+  * Descarga de reportes mensuales de actividades en formato **PDF** y exportación/importación de copias de seguridad en formato **JSON**.
 
-## 4. ¿Cómo lo utilizarían las personas encargadas? (Casos de Uso)
+---
 
-### Escenario A: El trabajo del Coordinador / Administrador
-1. **Inicio de jornada:** El administrador abre la aplicación en su computadora de escritorio o celular e ingresa a la pestaña **Dashboard**.
-2. **Revisión rápida:** Revisa el tablero general de métricas; nota inmediatamente que hay `1 preventivo atrasado` y `0 fallas activas` que requieran su atención urgente.
-3. **Control de Insumos:** Entra a la pestaña "Configuración e Insumos" y nota una alerta roja indicando que los "Discos Abrasivos de 7 pulgadas" están por debajo del stock mínimo. Procede a generar una orden de compra antes de que se agoten por completo.
-4. **Respaldo Semanal:** Al terminar la semana, presiona el botón "Exportar Respaldo JSON" y guarda el archivo generado en su correo o en un pendrive para mantener un historial físico inmutable.
+## 3. Arquitectura Técnica (Offline-First)
 
-### Escenario B: Reporte de Fallas (Docentes o Técnicos)
-1. **Detección durante la práctica:** Un profesor está impartiendo clase utilizando el *Taladro de Pedestal* y nota un ruido extraño seguido del atasco del mandril.
-2. **Levantamiento del reporte:** El profesor saca su celular personal, abre la app de MantoLab instalada, se dirige a "Reportar Falla", selecciona el Taladro, asigna una gravedad "Alta" y describe detalladamente el problema detectado.
-3. **Alerta del sistema:** Tras guardar el reporte, el sistema emite una alerta, bloquea los mantenimientos preventivos del taladro y cambia automáticamente el estado general de la máquina a **Fuera de Servicio**, indicando visualmente en el sistema que nadie más debe utilizarlo.
+MantoLab es una **PWA (Progressive Web App)** estructurada como una *Single Page Application (SPA)* que funciona bajo un modelo **"Offline-First"**:
 
-### Escenario C: Ejecución de Mantenimiento Correctivo (Técnico Encargado)
-1. **Gestión de tickets:** El técnico encargado ingresa a la pestaña de "Mantenimiento Correctivo" y revisa los tickets abiertos, encontrando el reporte del Taladro de Pedestal.
-2. **Intervención:** El técnico procede a desarmar el mandril, engrasarlo y reparar la pieza atascada físicamente en el taller.
-3. **Cierre de orden:** Una vez reparado, el técnico abre la app, busca el ticket y pulsa en "Resolver Falla". Registra las refacciones utilizadas y el costo de mano de obra (ej. $15 USD). Al guardar, el ticket pasa al historial histórico y el sistema devuelve el Taladro de forma automática a su estado **Operativo**.
+* **Almacenamiento Local (LocalStorage):** La base de datos, cuentas de usuarios registrados, historial de mantenimientos y bitácora de reservas se guardan en la memoria local del navegador del dispositivo. No requiere un servidor de base de datos en la nube constante.
+* **Service Worker (PWA):** Los recursos estáticos de la interfaz (.html, .css, .js, imágenes y librerías externas de PDF) se descargan y almacenan en caché. Esto permite utilizar la aplicación, reportar fallas y consultar reservas en el taller, incluso en zonas sin señal de internet o Wi-Fi.
+* **Control de Conflictos de Reservas:** El sistema valida de manera automatizada en el cliente que no existan reservas aprobadas que se solapen en fecha, hora y laboratorio.
+
+---
+
+## 4. Escenarios y Casos de Uso Comunes
+
+### Escenario A: Registro e Ingreso de un Estudiante
+1. **Primer Acceso**: Un estudiante abre MantoLab en su celular por primera vez. Se le presenta la pantalla de inicio de sesión.
+2. **Registro**: Hace clic en "Regístrate aquí", ingresa su Matrícula y Nombre completo, y presiona "Registrarse e Ingresar".
+3. **Inicio Directo**: En adelante, solo necesitará escribir su matrícula para ingresar a su panel individual.
+
+### Escenario B: Solicitud de Reserva por un Estudiante
+1. **Navegación**: El estudiante ingresa a la pestaña "Reservas de Laboratorio".
+2. **Formulación**: Llena los datos solicitados: selecciona "Taller de Manufactura", la fecha, la hora de inicio y fin, y escribe el motivo (ej. "Práctica en Torno para proyecto de robótica").
+3. **Envío**: Al enviar, la reserva se registra con estado **Pendiente** y se muestra en su listado individual.
+
+### Escenario C: Gestión de Reservas y Mantenimiento (Administrador)
+1. **Ingreso**: El administrador inicia sesión ingresando el PIN administrador.
+2. **Alertas en Menú**: El menú lateral muestra notificaciones dinámicas (ej: badge rojo de preventivos vencidos o solicitudes de reserva pendientes de aprobación).
+3. **Aprobación de Reserva**: Va a "Reservas de Laboratorio", evalúa la solicitud de práctica y presiona "Aprobar". El estado de la reserva cambia a **Aprobada** y ese bloque queda bloqueado para otros estudiantes.
+4. **Resolución de Falla**: Si un estudiante reportó un equipo dañado, el administrador repara la máquina, abre el ticket y presiona "Resolver Falla" para devolver el equipo al estado **Operativo**.

@@ -7,7 +7,12 @@ let state = {
   equipos: [],
   correctivos: [],
   insumos: [],
-  historico: []
+  historico: [],
+  currentRole: "estudiante",
+  adminPin: "1234",
+  usuarios: [],
+  reservas: [],
+  session: null
 };
 
 // Fecha "actual" de referencia del sistema (según metadatos de ejecución del usuario)
@@ -190,7 +195,34 @@ const DATOS_SEMILLA = {
       fecha: "2026-05-04",
       costo: 0
     }
-  ]
+  ],
+  usuarios: [
+    { matricula: "EST-2026-01", nombre: "Lucas Pérez", carrera: "Ingeniería Industrial" },
+    { matricula: "EST-2026-02", nombre: "Sofía Gómez", carrera: "Mecatrónica" }
+  ],
+  reservas: [
+    {
+      id: "RES-001",
+      usuarioMatricula: "EST-2026-01",
+      laboratorio: "manufactura",
+      fecha: "2026-05-29",
+      horaInicio: "10:00",
+      horaFin: "12:00",
+      proposito: "Práctica libre en Torno de Banco",
+      estado: "Aprobada"
+    },
+    {
+      id: "RES-002",
+      usuarioMatricula: "EST-2026-02",
+      laboratorio: "manufactura",
+      fecha: "2026-05-30",
+      horaInicio: "14:00",
+      horaFin: "16:00",
+      proposito: "Uso de soldadora MIG para armar chasis de robot",
+      estado: "Pendiente"
+    }
+  ],
+  session: null
 };
 
 // --- INICIALIZACIÓN ---
@@ -208,6 +240,12 @@ function cargarEstado() {
   if (guardado) {
     try {
       state = JSON.parse(guardado);
+      // Asegurar campos de roles para migración de datos
+      if (!state.currentRole) state.currentRole = "estudiante";
+      if (!state.adminPin) state.adminPin = "1234";
+      if (!state.usuarios) state.usuarios = JSON.parse(JSON.stringify(DATOS_SEMILLA.usuarios));
+      if (!state.reservas) state.reservas = JSON.parse(JSON.stringify(DATOS_SEMILLA.reservas));
+      if (state.session === undefined) state.session = null;
     } catch (e) {
       console.error("Error cargando LocalStorage. Restableciendo datos semilla.", e);
       state = JSON.parse(JSON.stringify(DATOS_SEMILLA));
@@ -307,6 +345,10 @@ function inicializarSPA() {
     config: {
       titulo: "Configuración e Insumos",
       subtitulo: "Gestión de stock de consumibles y herramientas de copia de seguridad"
+    },
+    reservas: {
+      titulo: "Reservas de Laboratorio",
+      subtitulo: "Consulta horarios y reserva espacios para prácticas libres o proyectos"
     }
   };
 
@@ -439,6 +481,115 @@ function configurarEventosComunes() {
   if (fileInput) {
     fileInput.addEventListener("change", importarCopiaSeguridad);
   }
+
+  // Eventos de Cambio de Rol
+  const btnRoleSelector = document.getElementById("user-role-selector");
+  if (btnRoleSelector) {
+    btnRoleSelector.addEventListener("click", manejarClicPerfilRol);
+  }
+  
+  const formRolePin = document.getElementById("form-role-pin");
+  if (formRolePin) {
+    formRolePin.addEventListener("submit", verificarPinAcceso);
+  }
+  
+  // Botón cerrar sesión dentro del modal de perfil
+  const btnCerrarSesionModal = document.getElementById("btn-cerrar-sesion-modal");
+  if (btnCerrarSesionModal) {
+    btnCerrarSesionModal.addEventListener("click", cerrarSesion);
+  }
+}
+
+function actualizarUIRol() {
+  const body = document.body;
+  const avatar = document.getElementById("user-avatar");
+  const displayName = document.getElementById("user-display-name");
+  const displayRole = document.getElementById("user-display-role");
+
+  // Obtener nombre e iniciales del usuario actual desde la sesión
+  const session = state.session;
+  
+  if (state.currentRole === "admin") {
+    body.classList.remove("role-estudiante");
+    body.classList.add("role-admin");
+    const nombreAdmin = session ? session.nombre : "Administrador";
+    const inicialesAdmin = generarIniciales(nombreAdmin);
+    if (avatar) {
+      avatar.textContent = inicialesAdmin;
+      avatar.style.background = "linear-gradient(135deg, var(--color-accent), #818cf8)";
+    }
+    if (displayName) displayName.textContent = nombreAdmin;
+    if (displayRole) {
+      displayRole.textContent = "Administrador";
+      displayRole.style.color = "var(--color-accent)";
+    }
+  } else {
+    body.classList.remove("role-admin");
+    body.classList.add("role-estudiante");
+    const nombreEst = session ? session.nombre : "Estudiante";
+    const inicialesEst = generarIniciales(nombreEst);
+    if (avatar) {
+      avatar.textContent = inicialesEst;
+      avatar.style.background = "linear-gradient(135deg, var(--color-secondary), #22d3ee)";
+    }
+    if (displayName) displayName.textContent = nombreEst;
+    if (displayRole) {
+      displayRole.textContent = session ? (session.carrera || "Estudiante") : "Invitado";
+      displayRole.style.color = "var(--text-muted)";
+    }
+    
+    // Si la pestaña activa actual es de administrador, redirigir al Dashboard
+    const activeTab = document.querySelector(".nav-item.active");
+    if (activeTab) {
+      const tabName = activeTab.getAttribute("data-tab");
+      if (tabName === "preventivo" || tabName === "config") {
+        const dashboardBtn = document.getElementById("btn-tab-dashboard");
+        if (dashboardBtn) dashboardBtn.click();
+      }
+    }
+  }
+}
+
+// Genera iniciales de 2 letras a partir de un nombre completo
+function generarIniciales(nombre) {
+  if (!nombre) return "?";
+  const partes = nombre.trim().split(" ").filter(p => p.length > 0);
+  if (partes.length === 1) return partes[0].substring(0, 2).toUpperCase();
+  return (partes[0][0] + partes[partes.length - 1][0]).toUpperCase();
+}
+
+function manejarClicPerfilRol() {
+  if (state.currentRole === "admin") {
+    state.currentRole = "estudiante";
+    guardarEstado();
+    actualizarUIRol();
+    renderizarTodo();
+    alert("Sesión cerrada. Has cambiado a Modo Estudiante (Consulta).");
+  } else {
+    document.getElementById("admin-pin-input").value = "";
+    abrirModal("modal-role-pin");
+    setTimeout(() => {
+      document.getElementById("admin-pin-input").focus();
+    }, 150);
+  }
+}
+
+function verificarPinAcceso(e) {
+  e.preventDefault();
+  const pinDigitado = document.getElementById("admin-pin-input").value;
+  
+  if (pinDigitado === state.adminPin) {
+    state.currentRole = "admin";
+    guardarEstado();
+    cerrarModal("modal-role-pin");
+    actualizarUIRol();
+    renderizarTodo();
+    alert("¡Acceso concedido! Bienvenido al Modo Administrador.");
+  } else {
+    alert("❌ PIN incorrecto. Inténtalo de nuevo.");
+    document.getElementById("admin-pin-input").value = "";
+    document.getElementById("admin-pin-input").focus();
+  }
 }
 
 function abrirModal(idModal) {
@@ -459,12 +610,14 @@ function cerrarModal(idModal) {
 
 // --- PROCESAMIENTO GENERAL DE RENDERS ---
 function renderizarTodo() {
+  actualizarUIRol();
   actualizarBadgesCount();
   renderizarDashboard();
   renderizarInventarioGrid();
   renderizarPreventivos();
   renderizarCorrectivos();
   renderizarInsumos();
+  renderizarReservas();
 }
 
 function renderizarVista(vista) {
@@ -484,6 +637,9 @@ function renderizarVista(vista) {
       break;
     case "config":
       renderizarInsumos();
+      break;
+    case "reservas":
+      renderizarReservas();
       break;
   }
 }
@@ -517,28 +673,63 @@ function actualizarBadgesCount() {
       corrBadge.style.display = "none";
     }
   }
+
+  // Reservas pendientes (Solo visible para administrador)
+  const resBadge = document.getElementById("reservas-badge-count");
+  if (resBadge) {
+    if (state.session && state.session.rol === "admin") {
+      const reservasPendientes = state.reservas.filter(r => r.estado === "Pendiente").length;
+      if (reservasPendientes > 0) {
+        resBadge.textContent = reservasPendientes;
+        resBadge.style.display = "inline-flex";
+      } else {
+        resBadge.style.display = "none";
+      }
+    } else {
+      resBadge.style.display = "none";
+    }
+  }
 }
 
 // --- LÓGICA DE DIBUJADO DE VISTAS ---
 
-// 1. DASHBOARD
+// 1. DASHBOARD (bifurcado por rol)
 function renderizarDashboard() {
+  const esAdmin = (state.currentRole === "admin");
+
+  // Mostrar/ocultar secciones según rol
+  const showEl = (id, show) => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = show ? (el.dataset.flex ? "flex" : "") : "none";
+  };
+
+  document.getElementById("dash-metrics-admin").style.display     = esAdmin ? "" : "none";
+  document.getElementById("dash-metrics-estudiante").style.display = esAdmin ? "none" : "";
+  document.getElementById("dash-panels-admin").style.display       = esAdmin ? "" : "none";
+  document.getElementById("dash-panels-estudiante").style.display  = esAdmin ? "none" : "";
+  document.getElementById("dash-calendar-panel-admin").style.display = esAdmin ? "" : "none";
+
+  if (esAdmin) {
+    renderizarDashboardAdmin();
+  } else {
+    renderizarDashboardEstudiante();
+  }
+}
+
+// ---------- DASHBOARD ADMINISTRADOR (lógica original) ----------
+function renderizarDashboardAdmin() {
   const totalEquipos = state.equipos.length;
   const operativos = state.equipos.filter(eq => eq.estado === "Operativo").length;
   const fallas = state.correctivos.filter(t => t.estado === "Abierto").length;
-  
   const atrasados = state.equipos.filter(eq => {
-    const proximo = new Date(eq.proximoPreventivo);
-    return proximo < HOY_SISTEMA && eq.estado !== "Fuera de Servicio";
+    return new Date(eq.proximoPreventivo) < HOY_SISTEMA && eq.estado !== "Fuera de Servicio";
   }).length;
 
-  // Actualizar indicadores numéricos
   document.getElementById("dash-total-equipos").textContent = totalEquipos;
   document.getElementById("dash-operativos").textContent = operativos;
   document.getElementById("dash-fallas").textContent = fallas;
   document.getElementById("dash-preventivos-atrasados").textContent = atrasados;
 
-  // Mensaje operativo porcentual
   const pct = totalEquipos > 0 ? Math.round((operativos / totalEquipos) * 100) : 100;
   document.getElementById("dash-percent-operativos").textContent = `${pct}% disponibilidad`;
 
@@ -561,10 +752,9 @@ function renderizarDashboard() {
     prevText.className = "text-success";
   }
 
-  // Dibujar panel izquierdo: Lista de fallas activas
+  // Panel izquierdo: fallas activas
   const activeList = document.getElementById("dash-active-correctives-list");
   const openTickets = state.correctivos.filter(t => t.estado === "Abierto");
-  
   if (openTickets.length > 0) {
     activeList.innerHTML = openTickets.map(t => {
       const eq = state.equipos.find(e => e.id === t.equipoId) || { nombre: "Equipo Desconocido" };
@@ -575,9 +765,11 @@ function renderizarDashboard() {
             <p class="mini-item-title">${eq.nombre}</p>
             <p class="mini-item-desc">${t.falla}</p>
           </div>
+          ${state.currentRole === 'admin' ? `
           <button class="mini-item-action-btn" onclick="abrirResolverFalla('${t.id}')" title="Resolver ticket">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
           </button>
+          ` : ''}
         </div>
       `;
     }).join("");
@@ -591,34 +783,24 @@ function renderizarDashboard() {
     `;
   }
 
-  // Dibujar panel derecho: Próximas tareas preventivas
+  // Panel derecho: próximas preventivas
   const upcomingList = document.getElementById("dash-upcoming-preventives-list");
-  
-  // Ordenar preventivos por proximidad de fecha
   const preventivosOrdenados = [...state.equipos]
     .filter(eq => eq.estado !== "Fuera de Servicio")
     .map(eq => {
       const proximo = new Date(eq.proximoPreventivo);
-      const difTime = proximo - HOY_SISTEMA;
-      const difDays = Math.ceil(difTime / (1000 * 60 * 60 * 24));
+      const difDays = Math.ceil((proximo - HOY_SISTEMA) / (1000 * 60 * 60 * 24));
       return { eq, proximo, difDays };
     })
     .sort((a, b) => a.difDays - b.difDays)
-    .slice(0, 4); // Top 4
+    .slice(0, 4);
 
   if (preventivosOrdenados.length > 0) {
     upcomingList.innerHTML = preventivosOrdenados.map(item => {
       let claseIndicador = "success";
       let txtPlazo = `En ${item.difDays} días`;
-      
-      if (item.difDays < 0) {
-        claseIndicador = "danger";
-        txtPlazo = `Atrasado hace ${Math.abs(item.difDays)} días`;
-      } else if (item.difDays <= 7) {
-        claseIndicador = "warning";
-        txtPlazo = `Vence en ${item.difDays} días`;
-      }
-
+      if (item.difDays < 0) { claseIndicador = "danger"; txtPlazo = `Atrasado hace ${Math.abs(item.difDays)} días`; }
+      else if (item.difDays <= 7) { claseIndicador = "warning"; txtPlazo = `Vence en ${item.difDays} días`; }
       return `
         <div class="mini-list-item">
           <span class="mini-item-indicator indicator-${claseIndicador}"></span>
@@ -637,10 +819,226 @@ function renderizarDashboard() {
       <div class="empty-state">
         <div class="empty-icon">📅</div>
         <h3>No hay preventivos</h3>
-        <p>No se encontraron equipos configurados en el taller piloto.</p>
+        <p>No se encontraron equipos configurados.</p>
       </div>
     `;
   }
+
+  renderizarCalendarioDashboard();
+}
+
+// ---------- DASHBOARD ESTUDIANTE ----------
+function renderizarDashboardEstudiante() {
+  if (!state.session) return;
+
+  const matricula = state.session.matricula;
+  const misReservas = state.reservas.filter(r => r.usuarioMatricula === matricula);
+  const aprobadas = misReservas.filter(r => r.estado === "Aprobada").length;
+  const pendientes = misReservas.filter(r => r.estado === "Pendiente").length;
+
+  // Métricas de reservas personales
+  document.getElementById("dash-mis-reservas").textContent = misReservas.length;
+  const resText = document.getElementById("dash-mis-reservas-text");
+  resText.textContent = misReservas.length > 0 ? `${aprobadas} aprobadas / ${pendientes} pendientes` : "Sin reservas aún";
+  resText.className = aprobadas > 0 ? "text-success" : "text-muted";
+
+  document.getElementById("dash-mis-aprobadas").textContent = aprobadas;
+  document.getElementById("dash-mis-pendientes").textContent = pendientes;
+
+  // Contar labs disponibles HOY (sin reserva Aprobada hoy)
+  const hoy = HOY_SISTEMA.toISOString().split("T")[0];
+  const TODOS_LABS = ["manufactura", "ciencias_basicas", "procesos", "neumatica", "automatizacion"];
+  const labsReservadosHoy = new Set(
+    state.reservas
+      .filter(r => r.fecha === hoy && r.estado === "Aprobada")
+      .map(r => r.laboratorio)
+  );
+  const disponiblesHoy = TODOS_LABS.filter(l => !labsReservadosHoy.has(l)).length;
+
+  document.getElementById("dash-labs-disponibles").textContent = disponiblesHoy;
+  const labsText = document.getElementById("dash-labs-text");
+  labsText.textContent = `de ${TODOS_LABS.length} laboratorios`;
+  labsText.className = disponiblesHoy > 0 ? "text-info" : "text-danger";
+
+  // Calendario de disponibilidad semanal
+  renderizarDisponibilidadLabs();
+
+  // Botón para ir a reservar
+  const btnIrReservar = document.getElementById("dash-ir-reservar");
+  if (btnIrReservar) {
+    btnIrReservar.onclick = () => document.getElementById("btn-tab-reservas").click();
+  }
+}
+
+// Genera la grilla de disponibilidad semanal de laboratorios
+function renderizarDisponibilidadLabs() {
+  const container = document.getElementById("dash-lab-availability");
+  if (!container) return;
+
+  const LABS = [
+    { key: "manufactura",     label: "🛠️ Manufactura" },
+    { key: "ciencias_basicas",label: "🧪 Ciencias Básicas" },
+    { key: "procesos",        label: "🏭 Procesos" },
+    { key: "neumatica",       label: "💨 Neumática" },
+    { key: "automatizacion",  label: "🤖 Automatización" }
+  ];
+
+  // Calcular los 7 días de esta semana (lunes a domingo)
+  const hoy = new Date(HOY_SISTEMA);
+  const diaSemana = hoy.getDay(); // 0=Dom ... 6=Sab
+  const lunesOffset = diaSemana === 0 ? -6 : 1 - diaSemana;
+  const diasSemana = [];
+  const diasLabels = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(hoy);
+    d.setDate(hoy.getDate() + lunesOffset + i);
+    diasSemana.push(d);
+  }
+
+  // Reservas de esta semana (solo Aprobadas = ocupan slot)
+  const fechasSemana = diasSemana.map(d => d.toISOString().split("T")[0]);
+  const reservasAprobadas = state.reservas.filter(r =>
+    r.estado === "Aprobada" && fechasSemana.includes(r.fecha)
+  );
+
+  // Mi matrícula para resaltar mis propias reservas
+  const miMatricula = state.session ? state.session.matricula : null;
+
+  // ── Encabezado con los días
+  let html = `<div class="avail-table-wrap"><table class="avail-table">
+    <thead>
+      <tr>
+        <th class="avail-th-lab">Laboratorio</th>
+        ${diasSemana.map((d, i) => {
+          const esHoy = d.toISOString().split("T")[0] === HOY_SISTEMA.toISOString().split("T")[0];
+          const num = d.getDate();
+          return `<th class="avail-th-day ${esHoy ? 'avail-th-today' : ''}">
+            <span class="avail-day-name">${diasLabels[i]}</span>
+            <span class="avail-day-num ${esHoy ? 'avail-day-num-today' : ''}">${num}</span>
+          </th>`;
+        }).join("")}
+      </tr>
+    </thead>
+    <tbody>`;
+
+  LABS.forEach(lab => {
+    html += `<tr>
+      <td class="avail-td-lab">${lab.label}</td>`;
+
+    diasSemana.forEach(d => {
+      const fechaStr = d.toISOString().split("T")[0];
+      const esHoy = fechaStr === HOY_SISTEMA.toISOString().split("T")[0];
+      const esPasado = d < new Date(HOY_SISTEMA.getFullYear(), HOY_SISTEMA.getMonth(), HOY_SISTEMA.getDate());
+
+      // Buscar reserva aprobada para este lab + fecha
+      const reserva = reservasAprobadas.find(r => r.laboratorio === lab.key && r.fecha === fechaStr);
+      const esMia = reserva && reserva.usuarioMatricula === miMatricula;
+
+      let clase = "avail-cell";
+      let contenido = "";
+
+      if (esPasado) {
+        clase += " avail-cell-pasado";
+        contenido = "–";
+      } else if (reserva) {
+        clase += esMia ? " avail-cell-mia" : " avail-cell-reservado";
+        contenido = `<span class="avail-pill">${reserva.horaInicio}–${reserva.horaFin}</span>`;
+        if (esMia) contenido += `<span class="avail-mine-badge">Mía</span>`;
+      } else {
+        clase += " avail-cell-libre";
+        if (!esPasado) contenido = `<span class="avail-libre-icon">✓</span>`;
+      }
+
+      if (esHoy) clase += " avail-cell-hoy";
+
+      html += `<td class="${clase}" title="${reserva ? 'Reservado: ' + reserva.horaInicio + ' - ' + reserva.horaFin : 'Disponible'}">${contenido}</td>`;
+    });
+
+    html += `</tr>`;
+  });
+
+  html += `</tbody></table></div>`;
+  container.innerHTML = html;
+}
+
+
+// Renderizado del Calendario
+function renderizarCalendarioDashboard() {
+  const calContainer = document.getElementById("dash-calendar");
+  const calMonthYear = document.getElementById("calendar-month-year");
+  if (!calContainer || !calMonthYear) return;
+
+  // Usamos el mes actual basado en HOY_SISTEMA
+  const year = HOY_SISTEMA.getFullYear();
+  const month = HOY_SISTEMA.getMonth(); // 0 - 11
+
+  const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+  calMonthYear.textContent = `${monthNames[month]} ${year}`;
+
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const firstDayIndex = new Date(year, month, 1).getDay(); // 0 (Sun) - 6 (Sat)
+  
+  // Mapeamos los eventos para este mes
+  const preventivosEsteMes = state.equipos
+    .filter(eq => eq.estado !== "Fuera de Servicio")
+    .map(eq => {
+      const proximo = new Date(eq.proximoPreventivo);
+      return { eq, proximo };
+    });
+
+  let html = `
+    <div class="calendar-header-row">
+      <div>Dom</div><div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div>
+    </div>
+    <div class="calendar-grid">
+  `;
+
+  // Días vacíos previos al inicio del mes
+  for (let i = 0; i < firstDayIndex; i++) {
+    html += `<div class="calendar-day empty"></div>`;
+  }
+
+  // Días del mes
+  for (let day = 1; day <= daysInMonth; day++) {
+    const isToday = (day === HOY_SISTEMA.getDate());
+    
+    // Buscar si hay equipos con mantenimiento propuesto para este día
+    const eventosHoy = preventivosEsteMes.filter(item => 
+      item.proximo.getFullYear() === year && 
+      item.proximo.getMonth() === month && 
+      item.proximo.getDate() === day
+    );
+
+    let eventosHtml = "";
+    eventosHoy.forEach(item => {
+      const difTime = item.proximo - HOY_SISTEMA;
+      const difDays = Math.ceil(difTime / (1000 * 60 * 60 * 24));
+      
+      let badgeClass = "";
+      if (difDays < 0) badgeClass = "danger";
+      else if (difDays <= 7) badgeClass = "warning";
+
+      // Obtener iniciales o acrónimo corto del equipo
+      const codigoCorto = item.eq.id.split('-').slice(-2).join('-'); // ej. TOR-01
+
+      eventosHtml += `
+        <div class="calendar-event ${badgeClass}" title="${item.eq.nombre}">
+          ${codigoCorto}
+        </div>
+      `;
+    });
+
+    html += `
+      <div class="calendar-day ${isToday ? 'today' : ''}">
+        <span class="calendar-date-number">${day}</span>
+        ${eventosHtml}
+      </div>
+    `;
+  }
+
+  html += `</div>`;
+  calContainer.innerHTML = html;
 }
 
 // 2. INVENTARIO
@@ -850,9 +1248,11 @@ function renderizarCorrectivos() {
           <p class="ticket-desc">${t.falla}</p>
           <div class="ticket-meta-footer">
             <span>Reportado por: <strong>${t.reportadoPor}</strong></span>
-            <button class="btn btn-success btn-sm" onclick="abrirResolverFalla('${t.id}')">
-              Resolver Falla
-            </button>
+            ${state.currentRole === 'admin' ? `
+              <button class="btn btn-success btn-sm" onclick="abrirResolverFalla('${t.id}')">
+                Resolver Falla
+              </button>
+            ` : ''}
           </div>
         </div>
       `;
@@ -999,6 +1399,10 @@ function abrirModalEquipo(idEquipo = null) {
 
 function guardarEquipo(e) {
   e.preventDefault();
+  if (state.currentRole !== "admin") {
+    alert("Acción denegada: Debes ser administrador para modificar equipos.");
+    return;
+  }
 
   const originalId = document.getElementById("form-equipo-id-original").value;
   const id = document.getElementById("eq-codigo").value.trim().toUpperCase();
@@ -1067,6 +1471,10 @@ function guardarEquipo(e) {
 
 // B. REALIZAR MANTENIMIENTO PREVENTIVO
 function completarMantenimientoPreventivo(idEquipo) {
+  if (state.currentRole !== "admin") {
+    alert("Acción denegada: Debes ser administrador para completar mantenimientos.");
+    return;
+  }
   const eq = state.equipos.find(e => e.id === idEquipo);
   if (!eq) return;
 
@@ -1108,7 +1516,9 @@ function abrirModalReportarFalla() {
 
   // Resetear fecha y campos del formulario
   document.getElementById("form-correctivo").reset();
-  document.getElementById("corr-reportador").value = "Ing. Juan Ayala";
+  // Auto-rellenar con el nombre del usuario actual de la sesión
+  const nombreReportador = state.session ? state.session.nombre : "";
+  document.getElementById("corr-reportador").value = nombreReportador;
 
   abrirModal("modal-correctivo");
 }
@@ -1185,6 +1595,10 @@ function abrirResolverFalla(ticketId) {
 
 function resolverFalla(e) {
   e.preventDefault();
+  if (state.currentRole !== "admin") {
+    alert("Acción denegada: Debes ser administrador para resolver fallas.");
+    return;
+  }
 
   const ticketId = document.getElementById("form-res-id-ticket").value;
   const acciones = document.getElementById("res-acciones").value.trim();
@@ -1364,6 +1778,10 @@ function abrirModalInsumo(idInsumo = null) {
 
 function guardarInsumo(e) {
   e.preventDefault();
+  if (state.currentRole !== "admin") {
+    alert("Acción denegada: Debes ser administrador para modificar insumos.");
+    return;
+  }
 
   const originalId = document.getElementById("form-insumo-id-original").value;
   const id = document.getElementById("ins-codigo").value.trim().toUpperCase();
@@ -1412,6 +1830,10 @@ function abrirEditarInsumo(idInsumo) {
 }
 
 function eliminarInsumo(idInsumo) {
+  if (state.currentRole !== "admin") {
+    alert("Acción denegada: Debes ser administrador para eliminar insumos.");
+    return;
+  }
   if (confirm(`¿Estás seguro de que deseas eliminar el insumo ${idInsumo}?`)) {
     state.insumos = state.insumos.filter(i => i.id !== idInsumo);
     guardarEstado();
@@ -1477,6 +1899,15 @@ function obtenerIconoPorCategoria(categoria) {
 // --- HERRAMIENTAS DE COPIA DE SEGURIDAD (RESPALDO JSON) Y REPORTES ---
 
 function exportarReporteMensual() {
+  if (state.currentRole !== "admin") {
+    alert("Acción denegada: Debes ser administrador para generar reportes.");
+    return;
+  }
+  if (!window.jspdf || !window.jspdf.jsPDF) {
+    alert("La librería de PDF (jsPDF) aún se está cargando. Por favor, verifica tu conexión a internet e inténtalo de nuevo.");
+    return;
+  }
+
   const yyyy = HOY_SISTEMA.getFullYear();
   const mm = String(HOY_SISTEMA.getMonth() + 1).padStart(2, '0');
   const prefijoMes = `${yyyy}-${mm}`;
@@ -1489,35 +1920,221 @@ function exportarReporteMensual() {
     return;
   }
 
-  // Construir el archivo CSV
-  let csvContent = "Fecha,Codigo Equipo,Nombre Maquina,Tipo de Mantenimiento,Costo (USD),Descripcion de Tareas\n";
-  
-  actividadesDelMes.forEach(act => {
-    // Buscar el nombre del equipo
-    const eq = state.equipos.find(e => e.id === act.equipoId) || { nombre: "Equipo Eliminado/Desconocido" };
-    
-    // Limpiar comas y comillas en la descripción para que no rompa el CSV
-    const desc = act.descripcion.replace(/"/g, '""').replace(/,/g, ' ');
-    
-    csvContent += `${act.fecha},${act.equipoId},"${eq.nombre}",${act.tipo},${act.costo},"${desc}"\n`;
+  const meses = [
+    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+  ];
+  const nombreMes = meses[HOY_SISTEMA.getMonth()];
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'letter'
   });
 
-  // Generar y descargar el Blob
-  const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csvContent], { type: 'text/csv;charset=utf-8;' }); // BOM para Excel
-  const url = URL.createObjectURL(blob);
+  // Margen superior estético (Línea de color Indigo)
+  doc.setFillColor(79, 70, 229);
+  doc.rect(15, 15, 185.9, 1.5, 'F');
+
+  // --- ENCABEZADO ---
+  // Logo / Icono
+  doc.setFillColor(79, 70, 229);
+  doc.roundedRect(15, 20, 10, 10, 1.5, 1.5, 'F');
   
-  const downloadAnchor = document.createElement('a');
-  downloadAnchor.setAttribute("href", url);
-  downloadAnchor.setAttribute("download", `reporte_mensual_taller_${prefijoMes}.csv`);
-  document.body.appendChild(downloadAnchor);
-  downloadAnchor.click();
-  downloadAnchor.remove();
-  
-  // Liberar memoria
-  setTimeout(() => URL.revokeObjectURL(url), 100);
+  // Dibujar un check blanco simple en el logo
+  doc.setDrawColor(255, 255, 255);
+  doc.setLineWidth(0.8);
+  doc.line(18, 25, 20, 27);
+  doc.line(20, 27, 24, 23);
+
+  // Nombre de la marca
+  doc.setFont("Helvetica", "bold");
+  doc.setFontSize(18);
+  doc.setTextColor(30, 41, 59);
+  doc.text("MantoLab", 28, 26);
+
+  doc.setFont("Helvetica", "normal");
+  doc.setFontSize(8.5);
+  doc.setTextColor(100, 116, 139);
+  doc.text("Control de Mantenimiento Inteligente", 28, 30);
+
+  // Metadatos a la derecha
+  doc.setFont("Helvetica", "bold");
+  doc.setFontSize(10.5);
+  doc.setTextColor(30, 41, 59);
+  doc.text("REPORTE DE ACTIVIDADES", 132, 23);
+
+  doc.setFont("Helvetica", "normal");
+  doc.setFontSize(8.5);
+  doc.setTextColor(100, 116, 139);
+  doc.text(`Periodo: ${nombreMes} de ${yyyy}`, 132, 27.5);
+  doc.text(`Generado: ${HOY_SISTEMA.toLocaleDateString("es-ES")}`, 132, 32);
+
+  // Separador
+  doc.setDrawColor(226, 232, 240);
+  doc.setLineWidth(0.4);
+  doc.line(15, 36, 200.9, 36);
+
+  // --- RESUMEN EJECUTIVO (TARJETAS) ---
+  const totalActividades = actividadesDelMes.length;
+  const totalPreventivos = actividadesDelMes.filter(a => a.tipo === "Preventivo").length;
+  const totalCorrectivos = actividadesDelMes.filter(a => a.tipo === "Correctivo").length;
+  const costoTotal = actividadesDelMes.reduce((acc, a) => acc + (a.costo || 0), 0);
+
+  doc.setFont("Helvetica", "bold");
+  doc.setFontSize(11);
+  doc.setTextColor(30, 41, 59);
+  doc.text("Resumen Mensual", 15, 44);
+
+  // Tarjeta 1: Total Actividades
+  doc.setFillColor(248, 250, 252); // slate-50
+  doc.setDrawColor(226, 232, 240);
+  doc.setLineWidth(0.2);
+  doc.roundedRect(15, 47, 42, 19, 1.5, 1.5, 'FD');
+  doc.setFont("Helvetica", "bold");
+  doc.setFontSize(7.5);
+  doc.setTextColor(100, 116, 139);
+  doc.text("TAREAS TOTALES", 18, 52);
+  doc.setFont("Helvetica", "bold");
+  doc.setFontSize(14);
+  doc.setTextColor(79, 70, 229);
+  doc.text(String(totalActividades), 18, 60);
+
+  // Tarjeta 2: Preventivos
+  doc.setFillColor(248, 250, 252);
+  doc.roundedRect(61, 47, 42, 19, 1.5, 1.5, 'FD');
+  doc.setFont("Helvetica", "bold");
+  doc.setFontSize(7.5);
+  doc.setTextColor(100, 116, 139);
+  doc.text("PREVENTIVAS", 64, 52);
+  doc.setFont("Helvetica", "bold");
+  doc.setFontSize(14);
+  doc.setTextColor(16, 185, 129);
+  doc.text(String(totalPreventivos), 64, 60);
+
+  // Tarjeta 3: Correctivos
+  doc.setFillColor(248, 250, 252);
+  doc.roundedRect(107, 47, 42, 19, 1.5, 1.5, 'FD');
+  doc.setFont("Helvetica", "bold");
+  doc.setFontSize(7.5);
+  doc.setTextColor(100, 116, 139);
+  doc.text("FALLAS RESUELTAS", 110, 52);
+  doc.setFont("Helvetica", "bold");
+  doc.setFontSize(14);
+  doc.setTextColor(244, 63, 94);
+  doc.text(String(totalCorrectivos), 110, 60);
+
+  // Tarjeta 4: Costo Total
+  doc.setFillColor(248, 250, 252);
+  doc.roundedRect(153, 47, 47.9, 19, 1.5, 1.5, 'FD');
+  doc.setFont("Helvetica", "bold");
+  doc.setFontSize(7.5);
+  doc.setTextColor(100, 116, 139);
+  doc.text("COSTO INVERTIDO", 156, 52);
+  doc.setFont("Helvetica", "bold");
+  doc.setFontSize(13);
+  doc.setTextColor(30, 41, 59);
+  doc.text(`$${costoTotal.toFixed(2)} USD`, 156, 60);
+
+  // --- TABLA DE ACTIVIDADES ---
+  const head = [['Fecha', 'Equipo / Máquina', 'Tipo', 'Costo', 'Descripción de Tareas / Solución']];
+  const body = actividadesDelMes.map(act => {
+    const eq = state.equipos.find(e => e.id === act.equipoId) || { nombre: "Equipo Eliminado" };
+    return [
+      act.fecha,
+      `${act.equipoId}\n(${eq.nombre})`,
+      act.tipo,
+      `$${parseFloat(act.costo).toFixed(2)} USD`,
+      act.descripcion
+    ];
+  });
+
+  doc.autoTable({
+    head: head,
+    body: body,
+    startY: 73,
+    margin: { top: 20, bottom: 25, left: 15, right: 15 },
+    theme: 'striped',
+    styles: {
+      font: 'helvetica',
+      fontSize: 8.5,
+      cellPadding: 3.5,
+      valign: 'middle',
+      overflow: 'linebreak'
+    },
+    headStyles: {
+      fillColor: [79, 70, 229], // Indigo primary (#4F46E5)
+      textColor: [255, 255, 255],
+      fontStyle: 'bold'
+    },
+    columnStyles: {
+      0: { cellWidth: 20 }, // Fecha
+      1: { cellWidth: 38 }, // Equipo
+      2: { cellWidth: 22 }, // Tipo
+      3: { cellWidth: 25, halign: 'right' }, // Costo
+      4: { cellWidth: 'auto' } // Descripción
+    }
+  });
+
+  // --- SECCIÓN DE FIRMAS ---
+  let finalY = doc.lastAutoTable.finalY || 73;
+  if (finalY + 35 > 260) {
+    doc.addPage();
+    finalY = 20; // iniciar arriba en nueva página
+  }
+
+  finalY += 15;
+  doc.setDrawColor(203, 213, 225); // slate-300
+  doc.setLineWidth(0.4);
+  doc.line(15, finalY + 12, 75, finalY + 12);
+  doc.line(140.9, finalY + 12, 200.9, finalY + 12);
+
+  doc.setFont("Helvetica", "bold");
+  doc.setFontSize(8.5);
+  doc.setTextColor(71, 85, 105);
+  doc.text("Ing. Juan Ayala", 15, finalY + 17);
+  doc.setFont("Helvetica", "normal");
+  doc.setFontSize(7.5);
+  doc.text("Responsable del Taller", 15, finalY + 21);
+
+  doc.setFont("Helvetica", "bold");
+  doc.setFontSize(8.5);
+  doc.text("Supervisión Académica", 140.9, finalY + 17);
+  doc.setFont("Helvetica", "normal");
+  doc.setFontSize(7.5);
+  doc.text("Firma Autorizada", 140.9, finalY + 21);
+
+  // --- PIE DE PÁGINA GLOBAL (NUMERACIÓN DE PÁGINAS) ---
+  const totalPages = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i);
+    doc.setFont("Helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(148, 163, 184); // slate-400
+
+    // Línea divisoria de pie de página
+    doc.setDrawColor(241, 245, 249); // slate-100
+    doc.setLineWidth(0.3);
+    doc.line(15, 266, 200.9, 266);
+
+    // Texto izquierdo y derecho
+    const str = `Página ${i} de ${totalPages}`;
+    doc.text(str, 15, 271);
+
+    const footerText = "MantoLab - Bitácora de Operaciones (Área: Taller de Manufactura)";
+    doc.text(footerText, 200.9 - doc.getTextWidth(footerText), 271);
+  }
+
+  // Descargar el documento PDF
+  doc.save(`reporte_mensual_taller_${prefijoMes}.pdf`);
 }
 
 function exportarCopiaSeguridad() {
+  if (state.currentRole !== "admin") {
+    alert("Acción denegada: Debes ser administrador para exportar copias de seguridad.");
+    return;
+  }
   const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
   const downloadAnchor = document.createElement('a');
   
@@ -1535,6 +2152,10 @@ function exportarCopiaSeguridad() {
 }
 
 function importarCopiaSeguridad(e) {
+  if (state.currentRole !== "admin") {
+    alert("Acción denegada: Debes ser administrador para importar copias de seguridad.");
+    return;
+  }
   const file = e.target.files[0];
   if (!file) return;
 
@@ -1559,4 +2180,527 @@ function importarCopiaSeguridad(e) {
   };
   
   reader.readAsText(file);
+}
+
+// --- SISTEMA DE INICIO DE SESIÓN Y RESERVAS DE LABORATORIOS ---
+
+// 1. Manejo de Sesión e Inicio de Sesión / Registro
+document.addEventListener("DOMContentLoaded", () => {
+  configurarEventosLogin();
+  verificarSesionActiva();
+});
+
+function verificarSesionActiva() {
+  const overlay = document.getElementById("login-screen");
+  const container = document.getElementById("app-container");
+  
+  if (state.session) {
+    if (overlay) overlay.style.display = "none";
+    if (container) container.style.display = "flex";
+    
+    // Sincronizar rol actual
+    state.currentRole = state.session.rol;
+    actualizarUIRol();
+    actualizarBadgesCount();
+  } else {
+    if (overlay) overlay.style.display = "flex";
+    if (container) container.style.display = "none";
+    
+    // Por defecto, rol estudiante para visualización
+    state.currentRole = "estudiante";
+    actualizarUIRol();
+  }
+}
+
+function configurarEventosLogin() {
+  const btnTabEstudiante = document.getElementById("tab-login-student");
+  const btnTabAdmin = document.getElementById("tab-login-admin");
+  const formEstudiante = document.getElementById("form-student-login");
+  const formAdmin = document.getElementById("form-admin-login");
+  
+  const linkShowRegister = document.getElementById("link-show-register");
+  const groupNombre = document.getElementById("login-nombre-group");
+  const groupCarrera = document.getElementById("login-carrera-group");
+  const btnSubmitStudent = document.getElementById("btn-student-submit");
+  const toggleTextStudent = document.getElementById("student-login-toggle-text");
+  
+  let esRegistro = false;
+
+  if (btnTabEstudiante && btnTabAdmin && formEstudiante && formAdmin) {
+    // Cambiar a formulario Estudiante
+    btnTabEstudiante.addEventListener("click", () => {
+      btnTabEstudiante.classList.add("active");
+      btnTabAdmin.classList.remove("active");
+      formEstudiante.style.display = "block";
+      formAdmin.style.display = "none";
+    });
+
+    // Cambiar a formulario Administrador
+    btnTabAdmin.addEventListener("click", () => {
+      btnTabAdmin.classList.add("active");
+      btnTabEstudiante.classList.remove("active");
+      formAdmin.style.display = "block";
+      formEstudiante.style.display = "none";
+    });
+  }
+
+  if (linkShowRegister && groupNombre && groupCarrera && btnSubmitStudent && toggleTextStudent) {
+    // Cambiar entre Login y Registro
+    linkShowRegister.addEventListener("click", (e) => {
+      e.preventDefault();
+      esRegistro = !esRegistro;
+      
+      if (esRegistro) {
+        groupNombre.style.display = "block";
+        groupCarrera.style.display = "block";
+        document.getElementById("login-nombre").required = true;
+        btnSubmitStudent.textContent = "Registrarse e Ingresar";
+        toggleTextStudent.innerHTML = '¿Ya tienes una cuenta? <a href="#" id="link-show-login" style="color: var(--color-accent); text-decoration: none; font-weight: 500;">Inicia sesión aquí</a>';
+        
+        // Re-vincular link de volver al login
+        const linkShowLogin = document.getElementById("link-show-login");
+        if (linkShowLogin) {
+          linkShowLogin.addEventListener("click", (evt) => {
+            evt.preventDefault();
+            linkShowRegister.click();
+          });
+        }
+      } else {
+        groupNombre.style.display = "none";
+        groupCarrera.style.display = "none";
+        document.getElementById("login-nombre").required = false;
+        btnSubmitStudent.textContent = "Ingresar";
+        toggleTextStudent.innerHTML = '¿Primera vez usando la app? <a href="#" id="link-show-register" style="color: var(--color-accent); text-decoration: none; font-weight: 500;">Regístrate aquí</a>';
+        
+        // Re-vincular link de volver al registro
+        const linkShowReg = document.getElementById("link-show-register");
+        if (linkShowReg) {
+          linkShowReg.addEventListener("click", (evt) => {
+            evt.preventDefault();
+            linkShowRegister.click();
+          });
+        }
+      }
+    });
+  }
+
+  // Submit Estudiante
+  if (formEstudiante) {
+    formEstudiante.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const matricula = document.getElementById("login-matricula").value.trim().toUpperCase();
+      
+      if (esRegistro) {
+        // Lógica de Registro
+        const nombre = document.getElementById("login-nombre").value.trim();
+        const carrera = document.getElementById("login-carrera").value.trim();
+        
+        if (state.usuarios.some(u => u.matricula === matricula)) {
+          alert("❌ Esta matrícula ya se encuentra registrada. Inicia sesión directamente.");
+          return;
+        }
+        
+        const nuevoUsuario = { matricula, nombre, carrera };
+        state.usuarios.push(nuevoUsuario);
+        state.session = { matricula, nombre, carrera, rol: "estudiante" };
+        guardarEstado();
+        
+        alert(`¡Registro exitoso! Bienvenido, ${nombre}. Ahora tienes acceso a reportar fallas y reservar laboratorios.`);
+      } else {
+        // Lógica de Login
+        const usuario = state.usuarios.find(u => u.matricula === matricula);
+        if (usuario) {
+          state.session = { matricula: usuario.matricula, nombre: usuario.nombre, carrera: usuario.carrera || "", rol: "estudiante" };
+          guardarEstado();
+          alert(`¡Bienvenido de vuelta, ${usuario.nombre}!`);
+        } else {
+          alert("❌ Matrícula no encontrada. Regístrate primero si es tu primera vez.");
+          return;
+        }
+      }
+      
+      // Limpiar campos y verificar sesión activa
+      formEstudiante.reset();
+      if (esRegistro) {
+        linkShowRegister.click();
+      }
+      verificarSesionActiva();
+      renderizarTodo();
+    });
+  }
+
+  // Submit Administrador
+  if (formAdmin) {
+    formAdmin.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const pin = document.getElementById("login-admin-pin").value;
+      
+      if (pin === state.adminPin) {
+        state.session = { matricula: "ADMIN", nombre: "Ing. Juan Ayala", rol: "admin" };
+        guardarEstado();
+        formAdmin.reset();
+        alert("¡Sesión iniciada como Administrador!");
+        verificarSesionActiva();
+        renderizarTodo();
+      } else {
+        alert("❌ PIN incorrecto. Inténtalo de nuevo.");
+        document.getElementById("login-admin-pin").value = "";
+        document.getElementById("login-admin-pin").focus();
+      }
+    });
+  }
+
+  // Formulario solicitar reserva submit
+  const formReservar = document.getElementById("form-solicitar-reserva");
+  if (formReservar) {
+    formReservar.addEventListener("submit", solicitarReservaHandler);
+  }
+  
+  // Filtro reservas admin
+  const filterReservas = document.getElementById("res-filter-status");
+  if (filterReservas) {
+    filterReservas.addEventListener("change", () => {
+      renderizarReservas();
+    });
+  }
+}
+
+// Cerrar sesión
+function cerrarSesion() {
+  if (confirm("¿Estás seguro de que deseas cerrar tu sesión?")) {
+    state.session = null;
+    state.currentRole = "estudiante";
+    guardarEstado();
+    cerrarModal("modal-perfil-usuario");
+    verificarSesionActiva();
+    renderizarTodo();
+  }
+}
+
+// Sobrescribir el selector de rol anterior: abrir modal de perfil en lugar de cerrar sesión directo
+function manejarClicPerfilRol() {
+  abrirModalPerfil();
+}
+
+// Abre el modal de perfil del usuario con sus datos e estadísticas
+function abrirModalPerfil() {
+  const body = document.getElementById("modal-perfil-body");
+  const titulo = document.getElementById("modal-perfil-titulo");
+  if (!body || !state.session) return;
+
+  const session = state.session;
+  
+  if (session.rol === "admin") {
+    titulo.textContent = "⚙️ Panel de Administrador";
+    const totalEquipos = state.equipos.length;
+    const fallasPendientes = state.correctivos.filter(t => t.estado === "Abierto").length;
+    const reservasPendientes = state.reservas.filter(r => r.estado === "Pendiente").length;
+    const preventivosAtrasados = state.equipos.filter(eq => {
+      return new Date(eq.proximoPreventivo) < HOY_SISTEMA && eq.estado !== "Fuera de Servicio";
+    }).length;
+
+    body.innerHTML = `
+      <div class="perfil-header">
+        <div class="perfil-avatar">${generarIniciales(session.nombre)}</div>
+        <div class="perfil-info-main">
+          <h3>${session.nombre}</h3>
+          <p class="perfil-rol-badge perfil-admin">Administrador del Sistema</p>
+        </div>
+      </div>
+      <div class="perfil-stats-grid">
+        <div class="perfil-stat-card">
+          <span class="perfil-stat-num">${totalEquipos}</span>
+          <span class="perfil-stat-label">Equipos Registrados</span>
+        </div>
+        <div class="perfil-stat-card">
+          <span class="perfil-stat-num" style="color: var(--color-danger);">${fallasPendientes}</span>
+          <span class="perfil-stat-label">Fallas Activas</span>
+        </div>
+        <div class="perfil-stat-card">
+          <span class="perfil-stat-num" style="color: var(--color-warning);">${preventivosAtrasados}</span>
+          <span class="perfil-stat-label">Prev. Atrasados</span>
+        </div>
+        <div class="perfil-stat-card">
+          <span class="perfil-stat-num" style="color: var(--color-accent);">${reservasPendientes}</span>
+          <span class="perfil-stat-label">Reservas Pendientes</span>
+        </div>
+      </div>
+      <p class="text-muted" style="text-align:center; font-size:0.8rem; margin-top:1rem;">PIN de acceso: <strong style="color: var(--color-accent);">${state.adminPin}</strong></p>
+    `;
+  } else {
+    titulo.textContent = "👤 Mi Perfil";
+    const usuario = state.usuarios.find(u => u.matricula === session.matricula) || {};
+    const misReservas = state.reservas.filter(r => r.usuarioMatricula === session.matricula);
+    const misFallas = state.correctivos.filter(t => t.reportadoPor === session.nombre);
+    const reservasAprobadas = misReservas.filter(r => r.estado === "Aprobada").length;
+    const reservasPendientes = misReservas.filter(r => r.estado === "Pendiente").length;
+
+    body.innerHTML = `
+      <div class="perfil-header">
+        <div class="perfil-avatar" style="background: linear-gradient(135deg, var(--color-secondary), #22d3ee);">${generarIniciales(session.nombre)}</div>
+        <div class="perfil-info-main">
+          <h3>${session.nombre}</h3>
+          <p class="perfil-rol-badge perfil-estudiante">${session.carrera || "Estudiante"}</p>
+        </div>
+      </div>
+      <div class="perfil-datos">
+        <div class="perfil-dato-item">
+          <span class="perfil-dato-label">Matrícula / Cédula</span>
+          <span class="perfil-dato-valor">${session.matricula}</span>
+        </div>
+        <div class="perfil-dato-item">
+          <span class="perfil-dato-label">Carrera / Especialidad</span>
+          <span class="perfil-dato-valor">${usuario.carrera || session.carrera || "No especificada"}</span>
+        </div>
+      </div>
+      <div class="perfil-stats-grid" style="margin-top:1.5rem;">
+        <div class="perfil-stat-card">
+          <span class="perfil-stat-num" style="color: var(--color-success);">${reservasAprobadas}</span>
+          <span class="perfil-stat-label">Reservas Aprobadas</span>
+        </div>
+        <div class="perfil-stat-card">
+          <span class="perfil-stat-num" style="color: var(--color-warning);">${reservasPendientes}</span>
+          <span class="perfil-stat-label">Reservas Pendientes</span>
+        </div>
+        <div class="perfil-stat-card">
+          <span class="perfil-stat-num">${misReservas.length}</span>
+          <span class="perfil-stat-label">Total Reservas</span>
+        </div>
+        <div class="perfil-stat-card">
+          <span class="perfil-stat-num">${misFallas.length}</span>
+          <span class="perfil-stat-label">Fallas Reportadas</span>
+        </div>
+      </div>
+    `;
+  }
+
+  abrirModal("modal-perfil-usuario");
+}
+
+
+// 2. Lógica del Sistema de Reservas de Laboratorio
+
+function renderizarReservas() {
+  const container = document.getElementById("reservas-list");
+  if (!container) return;
+
+  const formPanel = document.getElementById("res-form-panel");
+  const adminFilters = document.getElementById("res-admin-filters");
+  const listTitle = document.getElementById("res-list-title");
+  const listSubtitle = document.getElementById("res-list-subtitle");
+  
+  if (!state.session) return;
+  
+  // Establecer fecha mínima del formulario de reservas a hoy
+  const inputFecha = document.getElementById("res-fecha-input");
+  if (inputFecha) {
+    inputFecha.min = HOY_SISTEMA.toISOString().split("T")[0];
+  }
+
+  if (state.session.rol === "admin") {
+    if (formPanel) formPanel.style.display = "none";
+    if (adminFilters) adminFilters.style.display = "block";
+    if (listTitle) listTitle.textContent = "Control General de Reservaciones";
+    if (listSubtitle) listSubtitle.textContent = "Aprobación y control de las solicitudes de práctica enviadas por los estudiantes.";
+    
+    // Filtrar reservas generales
+    const filtroEstado = document.getElementById("res-filter-status").value;
+    let reservasFiltradas = state.reservas;
+    
+    if (filtroEstado !== "todos") {
+      reservasFiltradas = state.reservas.filter(r => r.estado === filtroEstado);
+    }
+    
+    reservasFiltradas.sort((a, b) => {
+      if (a.estado === "Pendiente" && b.estado !== "Pendiente") return -1;
+      if (a.estado !== "Pendiente" && b.estado === "Pendiente") return 1;
+      return new Date(b.fecha) - new Date(a.fecha);
+    });
+
+    if (reservasFiltradas.length > 0) {
+      container.innerHTML = reservasFiltradas.map(res => {
+        const u = state.usuarios.find(user => user.matricula === res.usuarioMatricula) || { nombre: "Estudiante no registrado" };
+        const badgeClase = `res-badge-${res.estado.toLowerCase()}`;
+        
+        return `
+          <div class="res-item-card" style="${res.estado === 'Pendiente' ? 'border-left: 4px solid var(--color-warning);' : ''}">
+            <div class="res-item-header">
+              <span class="res-lab-name">${obtenerLabelLaboratorio(res.laboratorio)}</span>
+              <span class="res-badge ${badgeClase}">${res.estado}</span>
+            </div>
+            <div class="res-item-details">
+              <p><strong>Proyecto/Motivo:</strong> ${res.proposito}</p>
+              <p style="margin-top:0.25rem;"><strong>Estudiante:</strong> ${u.nombre} (${res.usuarioMatricula} | ${u.carrera || 'General'})</p>
+            </div>
+            <div class="res-item-meta">
+              <span>📅 ${res.fecha}</span>
+              <span>⏰ ${res.horaInicio} - ${res.horaFin}</span>
+            </div>
+            
+            ${res.estado === "Pendiente" ? `
+              <div class="res-actions-footer">
+                <button class="btn btn-danger btn-sm" onclick="gestionarReserva('${res.id}', 'Rechazada')">Rechazar</button>
+                <button class="btn btn-success btn-sm" onclick="gestionarReserva('${res.id}', 'Aprobada')">Aprobar</button>
+              </div>
+            ` : `
+              <div class="res-actions-footer">
+                <button class="btn btn-secondary btn-sm" onclick="eliminarReserva('${res.id}')">Eliminar Historial</button>
+              </div>
+            `}
+          </div>
+        `;
+      }).join("");
+    } else {
+      container.innerHTML = `
+        <div class="empty-state" style="padding: 4rem 1rem;">
+          <div class="empty-icon">📅</div>
+          <h3>Sin reservaciones</h3>
+          <p>No se encontraron reservas con el filtro seleccionado.</p>
+        </div>
+      `;
+    }
+  } else {
+    if (formPanel) formPanel.style.display = "block";
+    if (adminFilters) adminFilters.style.display = "none";
+    if (listTitle) listTitle.textContent = "Mis Reservas Solicitadas";
+    if (listSubtitle) listSubtitle.textContent = "Consulta el estado de tus reservas anteriores o pendientes de aprobación.";
+    
+    const misReservas = state.reservas.filter(r => r.usuarioMatricula === state.session.matricula);
+    misReservas.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+    if (misReservas.length > 0) {
+      container.innerHTML = misReservas.map(res => {
+        const badgeClase = `res-badge-${res.estado.toLowerCase()}`;
+        return `
+          <div class="res-item-card">
+            <div class="res-item-header">
+              <span class="res-lab-name">${obtenerLabelLaboratorio(res.laboratorio)}</span>
+              <span class="res-badge ${badgeClase}">${res.estado}</span>
+            </div>
+            <div class="res-item-details">
+              <p><strong>Proyecto/Motivo:</strong> ${res.proposito}</p>
+            </div>
+            <div class="res-item-meta">
+              <span>📅 ${res.fecha}</span>
+              <span>⏰ ${res.horaInicio} - ${res.horaFin}</span>
+            </div>
+            
+            ${res.estado === "Pendiente" ? `
+              <div class="res-actions-footer">
+                <button class="btn btn-secondary btn-sm" onclick="eliminarReserva('${res.id}')">Cancelar Solicitud</button>
+              </div>
+            ` : ""}
+          </div>
+        `;
+      }).join("");
+    } else {
+      container.innerHTML = `
+        <div class="empty-state" style="padding: 4rem 1rem;">
+          <div class="empty-icon">📅</div>
+          <h3>Aún no has solicitado reservas</h3>
+          <p>Usa el formulario de la izquierda para reservar tu primer espacio de práctica.</p>
+        </div>
+      `;
+    }
+  }
+}
+
+function obtenerLabelLaboratorio(key) {
+  const nombres = {
+    manufactura: "🛠️ Taller de Manufactura",
+    ciencias_basicas: "🧪 Lab. Ciencias Básicas",
+    procesos: "🏭 Taller de Procesos",
+    neumatica: "💨 Taller de Neumática",
+    automatizacion: "🤖 Taller de Automatización"
+  };
+  return nombres[key] || key;
+}
+
+function solicitarReservaHandler(e) {
+  e.preventDefault();
+  
+  if (!state.session || state.session.rol !== "estudiante") {
+    alert("Solo los estudiantes registrados pueden realizar reservas.");
+    return;
+  }
+  
+  const lab = document.getElementById("res-laboratorio").value;
+  const fecha = document.getElementById("res-fecha-input").value;
+  const horaInicio = document.getElementById("res-hora-inicio").value;
+  const horaFin = document.getElementById("res-hora-fin").value;
+  const proposito = document.getElementById("res-proposito").value.trim();
+  
+  if (horaInicio >= horaFin) {
+    alert("❌ Error: La hora de inicio debe ser anterior a la hora de fin.");
+    return;
+  }
+  
+  // Validar conflicto de horarios
+  const conflicto = state.reservas.some(res => {
+    return res.laboratorio === lab && 
+           res.fecha === fecha && 
+           res.estado === "Aprobada" && 
+           ((horaInicio >= res.horaInicio && horaInicio < res.horaFin) || 
+            (horaFin > res.horaInicio && horaFin <= res.horaFin) ||
+            (horaInicio <= res.horaInicio && horaFin >= res.horaFin));
+  });
+  
+  if (conflicto) {
+    alert("❌ Conflicto de Horario: El laboratorio ya se encuentra reservado y aprobado para otra práctica en este mismo horario.");
+    return;
+  }
+  
+  const nuevaReserva = {
+    id: `RES-${Date.now()}`,
+    usuarioMatricula: state.session.matricula,
+    laboratorio: lab,
+    fecha,
+    horaInicio,
+    horaFin,
+    proposito,
+    estado: "Pendiente"
+  };
+  
+  state.reservas.push(nuevaReserva);
+  guardarEstado();
+  document.getElementById("form-solicitar-reserva").reset();
+  renderizarReservas();
+  alert("📅 Solicitud de reserva enviada con éxito. Pendiente de aprobación por el Administrador.");
+}
+
+function gestionarReserva(id, nuevoEstado) {
+  if (state.session.rol !== "admin") {
+    alert("Acción no permitida.");
+    return;
+  }
+  
+  const res = state.reservas.find(r => r.id === id);
+  if (res) {
+    res.estado = nuevoEstado;
+    guardarEstado();
+    renderizarReservas();
+    renderizarDashboard(); // Actualizar mapa de disponibilidad en tiempo real
+    actualizarBadgesCount();
+    alert(`Reserva ${nuevoEstado === 'Aprobada' ? 'Aprobada ✅' : 'Rechazada ❌'} exitosamente.`);
+  }
+}
+
+function eliminarReserva(id) {
+  const resIndex = state.reservas.findIndex(r => r.id === id);
+  if (resIndex !== -1) {
+    const res = state.reservas[resIndex];
+    
+    if (state.session.rol === "admin" || (state.session.rol === "estudiante" && res.usuarioMatricula === state.session.matricula)) {
+      if (confirm("¿Estás seguro de que deseas eliminar esta reserva?")) {
+        state.reservas.splice(resIndex, 1);
+        guardarEstado();
+        renderizarReservas();
+        renderizarDashboard(); // Actualizar mapa de disponibilidad en tiempo real
+        actualizarBadgesCount();
+        alert("Reserva eliminada con éxito.");
+      }
+    } else {
+      alert("Acción no autorizada.");
+    }
+  }
 }
