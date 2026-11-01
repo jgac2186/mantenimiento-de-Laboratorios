@@ -221,6 +221,9 @@ h1, h2, h3, h4, h5, h6 {
 
 .custom-select-wrapper {
   position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
 }
 
 .workshop-select {
@@ -235,22 +238,49 @@ h1, h2, h3, h4, h5, h6 {
   cursor: pointer;
   appearance: none;
   -webkit-appearance: none;
+  padding: 0.25rem 2.25rem 0.25rem 0.15rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  line-height: 1.35;
+}
+
+.workshop-select:focus {
+  outline: none;
 }
 
 .workshop-select option {
   background: #ffffff;
   color: var(--text-primary);
+  font-weight: 500;
+  padding: 6px 10px;
 }
 
 .custom-select-wrapper::after {
-  content: '▼';
-  font-size: 0.6rem;
-  color: var(--text-muted);
+  content: '';
   position: absolute;
-  right: 5px;
+  right: 2px;
   top: 50%;
   transform: translateY(-50%);
+  width: 22px;
+  height: 22px;
+  background-color: rgba(60, 37, 101, 0.08);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%233C2565' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 11px 11px;
+  border-radius: 6px;
+  border: 1px solid rgba(60, 37, 101, 0.18);
   pointer-events: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(60, 37, 101, 0.08);
+}
+
+.custom-select-wrapper:hover::after {
+  background-color: var(--uti-purple, #3C2565);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  border-color: var(--uti-purple, #3C2565);
+  box-shadow: 0 2px 6px rgba(60, 37, 101, 0.25);
 }
 
 /* Navigation Items */
