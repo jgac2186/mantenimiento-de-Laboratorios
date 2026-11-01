@@ -671,7 +671,7 @@ function registrarServiceWorker() {
   if ('caches' in window) {
     caches.keys().then(names => {
       names.forEach(name => {
-        if (name !== 'mantolab-v18') caches.delete(name);
+        if (name !== 'mantolab-v19') caches.delete(name);
       });
     });
   }
@@ -747,12 +747,12 @@ function inicializarSPA() {
       subtitulo: "Administración de equipos del taller y fichas técnicas"
     },
     plan: {
-      titulo: "Plan Maestro de Mantenimiento",
-      subtitulo: "Matriz RCM, criticidad ABC, cronograma maestro y órdenes de trabajo (OT)"
+      titulo: "Plan de Mantenimiento",
+      subtitulo: "Gestión integral: agenda de preventivos, cronograma anual Gantt, criticidad RCM y órdenes de trabajo (OT)"
     },
     preventivo: {
-      titulo: "Mantenimiento Preventivo",
-      subtitulo: "Planificación de revisiones periódicas recomendadas"
+      titulo: "Plan de Mantenimiento",
+      subtitulo: "Agenda de mantenimiento preventivo y estado de equipos"
     },
     correctivo: {
       titulo: "Reportes de Falla (Correctivo)",
@@ -771,6 +771,15 @@ function inicializarSPA() {
   navItems.forEach(item => {
     item.addEventListener("click", () => {
       const tabName = item.getAttribute("data-tab");
+      
+      if (tabName === "preventivo") {
+        const planNav = document.getElementById("btn-tab-plan");
+        if (planNav) {
+          planNav.click();
+          if (typeof activarSubtabPlan === "function") activarSubtabPlan("preventivo");
+          return;
+        }
+      }
       
       // Cambiar clase activa en menú
       navItems.forEach(nav => nav.classList.remove("active"));
@@ -854,7 +863,8 @@ function configurarEventosComunes() {
   });
   
   document.getElementById("dash-go-preventivos").addEventListener("click", () => {
-    document.getElementById("btn-tab-preventivo").click();
+    document.getElementById("btn-tab-plan").click();
+    if (typeof activarSubtabPlan === "function") activarSubtabPlan("preventivo");
   });
 
   // Eventos de Inventario
@@ -1042,7 +1052,7 @@ function actualizarUIRol() {
     const activeTab = document.querySelector(".nav-item.active");
     if (activeTab) {
       const tabName = activeTab.getAttribute("data-tab");
-      if (tabName === "preventivo" || tabName === "config") {
+      if (tabName === "config") {
         const dashboardBtn = document.getElementById("btn-tab-dashboard");
         if (dashboardBtn) dashboardBtn.click();
       }
@@ -1135,10 +1145,8 @@ function renderizarVista(vista) {
       renderizarInventarioGrid();
       break;
     case "plan":
-      renderizarPlanMaestro();
-      break;
     case "preventivo":
-      renderizarPreventivos();
+      renderizarPlanMaestro();
       break;
     case "correctivo":
       renderizarCorrectivos();
@@ -1750,7 +1758,7 @@ function renderizarPreventivos() {
             <p>${difText}</p>
           </div>
           ${item.eq.estado !== "Fuera de Servicio" ? `
-            <button class="btn btn-success btn-sm" onclick="completarMantenimientoPreventivo('${item.eq.id}')">
+            <button class="btn btn-success btn-sm admin-only" onclick="completarMantenimientoPreventivo('${item.eq.id}')">
               Marcar Realizado
             </button>
           ` : `
@@ -3905,6 +3913,23 @@ function eliminarReserva(id) {
 // --- MÓDULO: PLAN MAESTRO DE MANTENIMIENTO INTEGRAL (RCM / TPM) ---
 // =====================================================================
 
+function activarSubtabPlan(subtabName) {
+  const subtabBtns = document.querySelectorAll(".plan-subtab-btn");
+  subtabBtns.forEach(btn => {
+    if (btn.getAttribute("data-subtab") === subtabName) {
+      btn.classList.add("active");
+    } else {
+      btn.classList.remove("active");
+    }
+  });
+  document.querySelectorAll(".plan-subtab-content").forEach(content => {
+    content.classList.remove("active");
+  });
+  const activeContent = document.getElementById(`subtab-${subtabName}`);
+  if (activeContent) activeContent.classList.add("active");
+}
+window.activarSubtabPlan = activarSubtabPlan;
+
 function inicializarPlanMaestroEventos() {
   // 1. Navegación por sub-pestañas internas del Plan Maestro
   const subtabBtns = document.querySelectorAll(".plan-subtab-btn");
@@ -4012,6 +4037,7 @@ function inicializarPlanMaestroEventos() {
 // --- FUNCIÓN ORQUESTADORA GENERAL DEL PLAN MAESTRO ---
 function renderizarPlanMaestro() {
   actualizarKPIsPlanMaestro();
+  renderizarPreventivos();
   renderizarMatrizCriticidad();
   renderizarCronogramaAnual();
   renderizarOrdenesTrabajo();

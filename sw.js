@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mantolab-v18';
+const CACHE_NAME = 'mantolab-v19';
 const ASSETS = [
   './',
   './index.html',
