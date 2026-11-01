@@ -816,6 +816,14 @@ function configurarEventosComunes() {
     });
   });
 
+  // Cerrar cualquier modal abierto con la tecla Escape
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      const activeModales = document.querySelectorAll(".modal-overlay.active");
+      activeModales.forEach(modal => cerrarModal(modal.id));
+    }
+  });
+
   // Atajos rápidos del Dashboard
   document.getElementById("btn-quick-correctivo").addEventListener("click", () => {
     abrirModalReportarFalla();
@@ -1077,7 +1085,10 @@ function cerrarModal(idModal) {
   const modal = document.getElementById(idModal);
   if (modal) {
     modal.classList.remove("active");
-    document.body.style.overflow = "auto";
+    const activeModales = document.querySelectorAll(".modal-overlay.active");
+    if (activeModales.length === 0) {
+      document.body.style.overflow = "auto";
+    }
   }
 }
 
