@@ -668,9 +668,20 @@ function guardarEstado() {
 let deferredPrompt;
 
 function registrarServiceWorker() {
+  if ('caches' in window) {
+    caches.keys().then(names => {
+      names.forEach(name => {
+        if (name !== 'mantolab-v14') caches.delete(name);
+      });
+    });
+  }
+
   if ('serviceWorker' in navigator && (window.location.protocol === 'http:' || window.location.protocol === 'https:')) {
     navigator.serviceWorker.register('./sw.js')
-      .then(reg => console.log('[PWA] Service Worker registrado correctamente:', reg.scope))
+      .then(reg => {
+        console.log('[PWA] Service Worker registrado correctamente:', reg.scope);
+        reg.update();
+      })
       .catch(err => console.error('[PWA] Fallo al registrar Service Worker:', err));
   }
 
@@ -4802,14 +4813,14 @@ function exportarPlanMaestroPDF() {
       doc.line(25, finalY, 85, finalY);
       doc.line(125, finalY, 185, finalY);
 
-      doc.setFontSize(8);
+      doc.setFontSize(7.5);
       doc.setFont("helvetica", "bold");
       doc.text("ING. JUAN AYALA", 55, finalY + 5, { align: "center" });
       doc.setFont("helvetica", "normal");
       doc.text("Coordinador de Talleres y Laboratorios", 55, finalY + 9, { align: "center" });
 
       doc.setFont("helvetica", "bold");
-      doc.text("DECANATO DE FACULTAD", 155, finalY + 5, { align: "center" });
+      doc.text("COORDINADOR DE LA FACULTAD DE INGENIERÍAS", 155, finalY + 5, { align: "center" });
       doc.setFont("helvetica", "normal");
       doc.text("Aprobación Plan Maestro RCM / TPM", 155, finalY + 9, { align: "center" });
     }

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mantolab-v13';
+const CACHE_NAME = 'mantolab-v14';
 const ASSETS = [
   './',
   './index.html',
@@ -21,7 +21,7 @@ self.addEventListener('install', (e) => {
   );
 });
 
-// Activar Service Worker y limpiar cachés antiguas
+// Activar Service Worker y limpiar cachés antiguas inmediatamente
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keys) => {
@@ -37,27 +37,36 @@ self.addEventListener('activate', (e) => {
   );
 });
 
-// Estrategia de respuesta: Cache First con recuperación por Red
+// Estrategia de respuesta: Network First para scripts y páginas, Cache First para estáticos
 self.addEventListener('fetch', (e) => {
+  const url = e.request.url;
+  const isCodeOrPage = e.request.mode === 'navigate' || url.includes('.js') || url.includes('.html');
+
+  if (isCodeOrPage) {
+    // Intentar siempre obtener la versión más reciente de la red
+    e.respondWith(
+      fetch(e.request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const clone = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(e.request, clone));
+          }
+          return networkResponse;
+        })
+        .catch(() => caches.match(e.request))
+    );
+    return;
+  }
+
+  // Para otros activos estáticos (iconos, fuentes, cdn), servir de caché o red
   e.respondWith(
     caches.match(e.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        // Devolver respuesta desde caché, pero buscar actualizaciones de red en segundo plano
-        fetch(e.request).then((networkResponse) => {
-          if (networkResponse.status === 200) {
-            caches.open(CACHE_NAME).then((cache) => cache.put(e.request, networkResponse));
-          }
-        }).catch(() => {/* Ignorar errores en segundo plano */});
-        
-        return cachedResponse;
-      }
-      
-      // Si no está en caché, buscar en la red
-      return fetch(e.request).catch(() => {
-        // Si no hay red e intenta cargar la página base, responder con la caché principal
-        if (e.request.mode === 'navigate') {
-          return caches.match('./index.html');
+      return cachedResponse || fetch(e.request).then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200) {
+          const clone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(e.request, clone));
         }
+        return networkResponse;
       });
     })
   );
