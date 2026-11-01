@@ -563,7 +563,7 @@ function cargarEstado() {
         equipoNombre: "TORNO PARALELO HORIZONTAL 1.5M",
         workshop: "manufactura",
         criticidad: "A",
-        responsable: "Ing. Juan Carlos Alulema",
+        responsable: "Ing. Juan Ayala",
         fechaProgramada: "2026-11-05",
         fechaCreacion: "2026-10-30",
         fechaCierre: null,
@@ -645,6 +645,15 @@ function cargarEstado() {
         ]
       }
     ];
+  }
+
+  // Sanitizar registros de OTs si tenían el nombre provisional de responsable
+  if (state.ordenesTrabajo && Array.isArray(state.ordenesTrabajo)) {
+    state.ordenesTrabajo.forEach(ot => {
+      if (ot.responsable && (ot.responsable.includes("Alulema") || ot.responsable.includes("Juan Carlos"))) {
+        ot.responsable = "Ing. Juan Ayala";
+      }
+    });
   }
 
   guardarEstado();
@@ -4600,7 +4609,7 @@ function abrirModalNuevaOT(preselectedEquipoId = null) {
 
   // Responsable por defecto
   if (inputResp) {
-    inputResp.value = state.session ? state.session.nombre : "Ing. Juan Carlos Alulema";
+    inputResp.value = state.session ? state.session.nombre : "Ing. Juan Ayala";
   }
 
   abrirModal("modal-nueva-ot");
@@ -4739,7 +4748,7 @@ function exportarPlanMaestroPDF() {
     doc.setFont("helvetica", "bold");
     doc.text(`Fecha de Emisión: ${fechaEmision}`, 18, 38);
     doc.text(`Ámbito Técnico: ${tallerNombre} (${total} Activos)`, 18, 44);
-    doc.text(`Responsable: ${state.session ? state.session.nombre : 'Ing. Juan Carlos Alulema'}`, 18, 50);
+    doc.text(`Responsable: ${state.session ? state.session.nombre : 'Ing. Juan Ayala'}`, 18, 50);
 
     doc.text(`Cumplimiento Preventivo: ${cumplimiento}%`, 120, 38);
     doc.text(`Disponibilidad de Máquinas: ${disponibilidad}%`, 120, 44);
@@ -4795,7 +4804,7 @@ function exportarPlanMaestroPDF() {
 
       doc.setFontSize(8);
       doc.setFont("helvetica", "bold");
-      doc.text("ING. JUAN CARLOS ALULEMA", 55, finalY + 5, { align: "center" });
+      doc.text("ING. JUAN AYALA", 55, finalY + 5, { align: "center" });
       doc.setFont("helvetica", "normal");
       doc.text("Coordinador de Talleres y Laboratorios", 55, finalY + 9, { align: "center" });
 
@@ -4961,7 +4970,7 @@ function imprimirOrdenTrabajoPDF(idOT) {
     doc.setFont("helvetica", "bold");
     doc.text("COORDINADOR / SUPERVISOR DE TALLER", 155, currentY + 5, { align: "center" });
     doc.setFont("helvetica", "normal");
-    doc.text("Ing. Juan Carlos Alulema", 155, currentY + 10, { align: "center" });
+    doc.text("Ing. Juan Ayala", 155, currentY + 10, { align: "center" });
 
     doc.save(`OT_${ot.id}_${ot.equipoId}.pdf`);
   } catch (err) {
