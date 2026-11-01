@@ -671,7 +671,7 @@ function registrarServiceWorker() {
   if ('caches' in window) {
     caches.keys().then(names => {
       names.forEach(name => {
-        if (name !== 'mantolab-v16') caches.delete(name);
+        if (name !== 'mantolab-v17') caches.delete(name);
       });
     });
   }
@@ -2517,14 +2517,14 @@ function exportarReporteMensual() {
   });
 
   // Margen superior estético (Línea de color Indigo)
-  doc.setFillColor(79, 70, 229);
+  doc.setFillColor(60, 37, 101); // Morado Institucional UTI
   doc.rect(15, 15, 185.9, 1.5, 'F');
 
   // Cabecera Oficial con Logo Institucional UTI
   const logoColor = (typeof window !== "undefined" && window.LOGO_INDOAMERICA_B64) || (typeof LOGO_INDOAMERICA_B64 !== "undefined" ? LOGO_INDOAMERICA_B64 : null);
   if (logoColor) {
     try {
-      doc.addImage(logoColor, "PNG", 15, 8, 48, 13.3);
+      doc.addImage(logoColor, "PNG", 15, 7, 44.2, 15);
     } catch (eLogo) {
       console.warn("Logo en reporte mensual:", eLogo);
     }
@@ -3239,7 +3239,7 @@ function exportarActaInventarioFisicoPDF() {
     const logoWhiteInv = (typeof window !== "undefined" && window.LOGO_INDOAMERICA_WHITE_B64) || (typeof LOGO_INDOAMERICA_WHITE_B64 !== "undefined" ? LOGO_INDOAMERICA_WHITE_B64 : null);
     if (logoWhiteInv) {
       try {
-        doc.addImage(logoWhiteInv, "PNG", 12, 5.5, 46, 12.8);
+        doc.addImage(logoWhiteInv, "PNG", 12, 6, 44.4, 15);
       } catch (eLogo) {
         console.warn("Logo en acta de inventario:", eLogo);
       }
@@ -4740,7 +4740,7 @@ function exportarPlanMaestroPDF() {
     const logoWhitePlan = (typeof window !== "undefined" && window.LOGO_INDOAMERICA_WHITE_B64) || (typeof LOGO_INDOAMERICA_WHITE_B64 !== "undefined" ? LOGO_INDOAMERICA_WHITE_B64 : null);
     if (logoWhitePlan) {
       try {
-        doc.addImage(logoWhitePlan, "PNG", 12, 5.5, 46, 12.8);
+        doc.addImage(logoWhitePlan, "PNG", 12, 6, 44.4, 15);
       } catch (eLogo) {
         console.warn("Logo en Plan Maestro PDF:", eLogo);
       }
@@ -4876,7 +4876,7 @@ function imprimirOrdenTrabajoPDF(idOT) {
     const logoWhiteOT = (typeof window !== "undefined" && window.LOGO_INDOAMERICA_WHITE_B64) || (typeof LOGO_INDOAMERICA_WHITE_B64 !== "undefined" ? LOGO_INDOAMERICA_WHITE_B64 : null);
     if (logoWhiteOT) {
       try {
-        doc.addImage(logoWhiteOT, "PNG", 12, 5.5, 46, 12.8);
+        doc.addImage(logoWhiteOT, "PNG", 12, 6, 44.4, 15);
       } catch (eLogo) {
         console.warn("Logo en OT PDF:", eLogo);
       }
