@@ -411,7 +411,7 @@
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
                 Exportar Plan PDF
               </button>
-              <button class="btn btn-primary admin-only" id="btn-nueva-ot" style="display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #2563eb, #1d4ed8); border:none; box-shadow: 0 4px 14px rgba(37,99,235,0.3);">
+              <button class="btn btn-primary admin-only" id="btn-nueva-ot" onclick="abrirModalNuevaOT()" style="display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #2563eb, #1d4ed8); border:none; box-shadow: 0 4px 14px rgba(37,99,235,0.3);">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 Nueva Orden de Trabajo (OT)
               </button>
@@ -601,7 +601,7 @@
                 <button class="filter-btn ot-filter-btn" data-estado="En Proceso">En Proceso</button>
                 <button class="filter-btn ot-filter-btn" data-estado="Completada">Completadas</button>
               </div>
-              <button class="btn btn-primary admin-only" id="btn-crear-ot-toolbar" style="margin-left: auto;">
+              <button class="btn btn-primary admin-only" id="btn-crear-ot-toolbar" onclick="abrirModalNuevaOT()" style="margin-left: auto;">
                 ➕ Crear OT
               </button>
             </div>
@@ -1338,14 +1338,16 @@
         </div>
       </div>
     </div>
+  </div>
+
   <!-- Modal: Crear / Editar Orden de Trabajo (OT) -->
   <div class="modal-overlay" id="modal-nueva-ot">
     <div class="modal-card animate-scale-in" style="max-width: 650px;">
       <div class="modal-header">
         <h2 id="modal-ot-title">Emitir Nueva Orden de Trabajo (OT)</h2>
-        <button class="modal-close-btn">&times;</button>
+        <button type="button" class="modal-close-btn" onclick="cerrarModal('modal-nueva-ot')">&times;</button>
       </div>
-      <form id="form-nueva-ot" class="modal-form">
+      <form id="form-nueva-ot" class="modal-form" onsubmit="guardarNuevaOT(event)">
         <input type="hidden" id="ot-id-original">
 
         <div class="form-row">
@@ -1408,7 +1410,7 @@
         </div>
 
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary modal-cancel-btn">Cancelar</button>
+          <button type="button" class="btn btn-secondary modal-cancel-btn" onclick="cerrarModal('modal-nueva-ot')">Cancelar</button>
           <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); border:none; color:white;">
             💾 Emitir Orden de Trabajo
           </button>

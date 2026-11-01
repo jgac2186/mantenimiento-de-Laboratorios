@@ -841,7 +841,7 @@ function configurarEventosComunes() {
     });
   }
 
-  const filterBtns = document.querySelectorAll(".filter-btn");
+  const filterBtns = document.querySelectorAll("#view-inventario .filter-btn");
   filterBtns.forEach(btn => {
     btn.addEventListener("click", () => {
       filterBtns.forEach(b => b.classList.remove("active"));
@@ -3964,7 +3964,7 @@ function inicializarPlanMaestroEventos() {
       const eq = state.equipos.find(item => item.id === eqId);
       const inputCrit = document.getElementById("ot-criticidad");
       if (inputCrit) {
-        inputCrit.value = eq ? `Clase ${clasificarCriticidad(eq)}` : "Clase B";
+        inputCrit.value = eq ? clasificarCriticidad(eq) : "B";
       }
     });
   }
@@ -4576,10 +4576,10 @@ function abrirModalNuevaOT(preselectedEquipoId = null) {
     selectEquipo.value = preselectedEquipoId;
     const eq = state.equipos.find(e => e.id === preselectedEquipoId);
     if (eq && inputCrit) {
-      inputCrit.value = `Clase ${clasificarCriticidad(eq)}`;
+      inputCrit.value = clasificarCriticidad(eq);
     }
   } else {
-    if (inputCrit) inputCrit.value = "Clase A";
+    if (inputCrit) inputCrit.value = "A";
   }
 
   // Establecer fecha por defecto a mañana
@@ -4596,16 +4596,17 @@ function abrirModalNuevaOT(preselectedEquipoId = null) {
 }
 
 function guardarNuevaOT(e) {
-  e.preventDefault();
+  if (e && e.preventDefault) e.preventDefault();
 
-  const id = document.getElementById("ot-codigo").value;
-  const tipo = document.getElementById("ot-tipo").value;
-  const equipoId = document.getElementById("ot-equipo").value;
-  const responsable = document.getElementById("ot-responsable").value.trim();
-  const fechaProgramada = document.getElementById("ot-fecha-programada").value;
-  const horasEstimadas = parseFloat(document.getElementById("ot-horas-estimadas").value) || 2.0;
-  const insumos = document.getElementById("ot-insumos").value.trim();
-  const instrucciones = document.getElementById("ot-instrucciones").value.trim();
+  const id = document.getElementById("ot-codigo")?.value || `OT-2026-${Date.now()}`;
+  const tipo = document.getElementById("ot-tipo")?.value || "Preventivo Programado";
+  const equipoId = document.getElementById("ot-equipo")?.value;
+  const criticidad = document.getElementById("ot-criticidad")?.value || "B";
+  const responsable = document.getElementById("ot-responsable")?.value?.trim() || "Técnico de Laboratorio";
+  const fechaProgramada = document.getElementById("ot-fecha-programada")?.value;
+  const horasEstimadas = parseFloat(document.getElementById("ot-horas-estimadas")?.value) || 2.0;
+  const insumos = document.getElementById("ot-insumos")?.value?.trim() || "";
+  const instrucciones = document.getElementById("ot-instrucciones")?.value?.trim() || "";
 
   if (!equipoId) {
     alert("Por favor selecciona un equipo de la lista para emitir la Orden de Trabajo.");
@@ -4615,30 +4616,38 @@ function guardarNuevaOT(e) {
   const equipo = state.equipos.find(e => e.id === equipoId);
   const equipoNombre = equipo ? equipo.nombre : "Equipo Industrial";
   const workshop = equipo ? equipo.workshop : (state.activeWorkshop || "manufactura");
-  const criticidad = equipo ? clasificarCriticidad(equipo) : "B";
 
-  // Generar checklists inteligentes según el tipo y criticidad
+  // Generar checklists inteligentes según las instrucciones ingresadas o según el tipo de OT
   let checklists = [];
-  if (tipo === "Predictivo") {
-    checklists = [
-      { tarea: "Inspección termográfica de bornes eléctricos y contactores", completado: false },
-      { tarea: "Análisis espectral de vibraciones en rodamientos y acoples", completado: false },
-      { tarea: "Medición de aislamiento de devanados (Megóhmetro > 100 MΩ)", completado: false }
-    ];
-  } else if (tipo === "Correctivo") {
-    checklists = [
-      { tarea: "Bloqueo de energía y consignación LOTO del tablero", completado: false },
-      { tarea: "Desmontaje e inspección del componente averiado", completado: false },
-      { tarea: "Instalación de repuesto original y prueba de torque", completado: false },
-      { tarea: "Puesta en marcha supervisada en vacío y bajo carga", completado: false }
-    ];
-  } else {
-    checklists = [
-      { tarea: "Desconexión segura y limpieza general de virutas o polvo", completado: false },
-      { tarea: "Comprobación y reposición de niveles de fluidos y aceites", completado: false },
-      { tarea: "Verificación de ajustes mecánicos y juego axial", completado: false },
-      { tarea: "Inspección funcional de botones de parada de emergencia y guardas", completado: false }
-    ];
+  if (instrucciones) {
+    const lineas = instrucciones.split("\n").map(l => l.trim()).filter(l => l.length > 0);
+    if (lineas.length > 0) {
+      checklists = lineas.map(linea => ({ tarea: linea, completado: false }));
+    }
+  }
+
+  if (checklists.length === 0) {
+    if (tipo.includes("Predictivo")) {
+      checklists = [
+        { tarea: "Inspección termográfica de bornes eléctricos y contactores", completado: false },
+        { tarea: "Análisis espectral de vibraciones en rodamientos y acoples", completado: false },
+        { tarea: "Medición de aislamiento de devanados (Megóhmetro > 100 MΩ)", completado: false }
+      ];
+    } else if (tipo.includes("Correctivo")) {
+      checklists = [
+        { tarea: "Bloqueo de energía y consignación LOTO del tablero", completado: false },
+        { tarea: "Desmontaje e inspección del componente averiado", completado: false },
+        { tarea: "Instalación de repuesto original y prueba de torque", completado: false },
+        { tarea: "Puesta en marcha supervisada en vacío y bajo carga", completado: false }
+      ];
+    } else {
+      checklists = [
+        { tarea: "Desconexión segura y limpieza general de virutas o polvo", completado: false },
+        { tarea: "Comprobación y reposición de niveles de fluidos y aceites", completado: false },
+        { tarea: "Verificación de ajustes mecánicos y juego axial", completado: false },
+        { tarea: "Inspección funcional de botones de parada de emergencia y guardas", completado: false }
+      ];
+    }
   }
 
   const nuevaOT = {
