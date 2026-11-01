@@ -42,12 +42,17 @@
 ## 🚀 Guía de Instalación y Ejecución Local
 
 ### Ejecución en el Navegador
-Para ejecutar el proyecto de forma local, simplemente abre el archivo `index.html` en tu navegador, o utiliza un servidor local para habilitar las características de Service Worker por completo:
 
-```bash
-# Si tienes Node.js instalado, puedes usar http-server o live-server
-npx http-server
-```
+**Método rápido (Windows):**
+* Haz doble clic en el archivo **`iniciar.bat`** para abrir la aplicación directamente en tu navegador.
+* O si deseas habilitar todas las funciones PWA (Service Worker y modo sin conexión completo), haz doble clic en **`iniciar_servidor.bat`** (no requiere instalar Node.js ni Python).
+
+**Método manual:**
+Simplemente abre el archivo `index.html` en tu navegador web preferido (Edge, Chrome, Firefox, etc.).
+
+### Credenciales de Acceso por Defecto:
+* **Modo Estudiante:** Matrícula: `EST-2026-01` (o usa el enlace "¿Primera vez usando la app? Regístrate aquí").
+* **Modo Administrador:** PIN: `1234`
 
 ### Instalación como Aplicación Móvil o de Escritorio
 1. Abre la aplicación en tu navegador (a través de `localhost` o la URL de despliegue HTTPS).

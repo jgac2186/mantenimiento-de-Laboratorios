@@ -1,8 +1,9 @@
-const CACHE_NAME = 'mantolab-v6';
+const CACHE_NAME = 'mantolab-v9';
 const ASSETS = [
   './',
   './index.html',
   './style.css',
+  './inventario_data.js',
   './app.js',
   './manifest.json',
   './icon.svg',

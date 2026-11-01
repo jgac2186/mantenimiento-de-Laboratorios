@@ -7,7 +7,7 @@
   
   <!-- SEO & PWA Meta Tags -->
   <meta name="description" content="Sistema inteligente y offline para control de mantenimiento de laboratorios y talleres.">
-  <meta name="theme-color" content="#111827">
+  <meta name="theme-color" content="#f8f6f0">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/svg+xml" href="icon.svg">
   <link rel="apple-touch-icon" href="icon.svg">
@@ -72,7 +72,7 @@
         <p class="text-muted" style="margin-bottom:1.5rem; text-align:center; font-size: 0.85rem;">Acceso exclusivo para el personal de administración y técnicos del taller.</p>
         <div class="form-group" style="text-align: center;">
           <label for="login-admin-pin" style="display: block; margin-bottom: 0.5rem; text-align: left;">PIN de Seguridad *</label>
-          <input type="password" id="login-admin-pin" placeholder="••••" maxlength="4" style="text-align: center; font-size: 1.8rem; letter-spacing: 0.6rem; width: 160px; margin: 0 auto; display: block; border-radius: 8px; border: 2px solid var(--color-border); background: rgba(255, 255, 255, 0.05); color: var(--color-text-primary);" required autocomplete="off">
+          <input type="password" id="login-admin-pin" placeholder="••••" maxlength="4" style="text-align: center; font-size: 1.8rem; letter-spacing: 0.6rem; width: 160px; margin: 0 auto; display: block; border-radius: 8px; border: 2px solid var(--border-color); background: #ffffff; color: var(--text-primary);" required autocomplete="off">
         </div>
         <button type="submit" class="btn btn-primary btn-block" style="margin-top: 1.5rem; width: 100%;">
           Acceder como Administrador
@@ -104,15 +104,16 @@
       </div>
       
       <!-- Workshop Selector (Dynamic & Scaleable) -->
-      <div class="workshop-selector-container admin-only">
-        <label for="workshop-select" class="selector-label">Área Activa</label>
+      <div class="workshop-selector-container">
+        <label for="workshop-select" class="selector-label">Taller / Laboratorio</label>
         <div class="custom-select-wrapper">
           <select id="workshop-select" class="workshop-select">
-            <option value="manufactura" selected>🛠️ Taller de Manufactura</option>
-            <option value="ciencias_basicas" disabled>🧪 Lab. Ciencias Básicas (Próximamente)</option>
-            <option value="procesos" disabled>🏭 Taller de Procesos (Próximamente)</option>
-            <option value="neumatica" disabled>💨 Taller de Neumática (Próximamente)</option>
-            <option value="automatizacion" disabled>🤖 Taller de Automatización (Próximamente)</option>
+            <option value="todos">🌐 Todos los Talleres (279 activos)</option>
+            <option value="manufactura" selected>🛠️ Taller de Manufactura (37)</option>
+            <option value="ciencias_basicas">🔬 Lab. Ciencias Básicas (144)</option>
+            <option value="automatizacion">🤖 Taller de Automatización (64)</option>
+            <option value="neumatica">💨 Taller de Neumática e Hidráulica (26)</option>
+            <option value="procesos">⚙️ Taller de Procesos (8)</option>
           </select>
         </div>
       </div>
@@ -365,10 +366,20 @@
               <button class="filter-btn" data-filter="Fuera de Servicio">Fuera Serv.</button>
             </div>
             
-            <button class="btn btn-primary admin-only" id="btn-add-equipo">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              Nuevo Equipo
-            </button>
+            <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+              <button class="btn admin-only" id="btn-open-inventario-fisico" style="display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; font-weight: 600; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                Inventario Físico
+              </button>
+              <button class="btn btn-secondary admin-only" id="btn-open-import-md" style="display: inline-flex; align-items: center; gap: 6px;">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+                Importar Markdown (.md)
+              </button>
+              <button class="btn btn-primary admin-only" id="btn-add-equipo">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                Nuevo Equipo
+              </button>
+            </div>
           </div>
 
           <!-- Inventory Grid -->
@@ -495,6 +506,16 @@
                     Seleccionar Archivo de Respaldo (.json)
                   </button>
                   <p class="restore-help-text">Al importar, se sobrescribirán los datos actuales con los del archivo de respaldo.</p>
+                </div>
+
+                <div class="restore-container" style="margin-top: 1rem;">
+                  <label class="restore-label">
+                    📄 Cargar Inventario desde Markdown (.md)
+                  </label>
+                  <button class="btn btn-primary btn-lg btn-block" onclick="document.getElementById('btn-open-import-md').click()" style="background: linear-gradient(135deg, #06b6d4, #3b82f6); border:none;">
+                    📂 Importar Equipos desde Markdown (.md)
+                  </button>
+                  <p class="restore-help-text">Sube una tabla o lista en formato Markdown para sincronizar la maquinaria del taller.</p>
                 </div>
               </div>
 
@@ -623,13 +644,22 @@
               <option value="Esmeril">Esmeril</option>
               <option value="Soldadura">Soldadura / Solda</option>
               <option value="Taladro">Taladro</option>
-              <option value="Otra">Otra Maquinaria</option>
+              <option value="Seguridad Industrial y EPP">Seguridad Industrial y EPP</option>
+              <option value="Mobiliario y Ergonomía">Mobiliario y Ergonomía</option>
+              <option value="Instrumentación">Instrumentación y Control</option>
+              <option value="Herramientas y Accesorios">Herramientas y Accesorios</option>
+              <option value="Otra">Otra Maquinaria / Activo</option>
             </select>
           </div>
           <div class="form-group">
-            <label for="eq-ubicacion">Ubicación Física *</label>
-            <input type="text" id="eq-ubicacion" placeholder="Ej: Zona A - Mecanizado" required>
+            <label for="eq-cantidad">Cantidad (Unidades/Lote) *</label>
+            <input type="number" id="eq-cantidad" min="1" value="1" placeholder="1" required>
           </div>
+        </div>
+
+        <div class="form-group">
+          <label for="eq-ubicacion">Ubicación Física *</label>
+          <input type="text" id="eq-ubicacion" placeholder="Ej: Zona A - Mecanizado" required>
         </div>
 
         <div class="form-row">
@@ -838,7 +868,7 @@
         <p class="text-muted" style="margin-bottom: 1rem; text-align: center;">Ingresa el PIN de seguridad para acceder a las funciones avanzadas de administración.</p>
         
         <div class="form-group" style="text-align: center;">
-          <input type="password" id="admin-pin-input" maxlength="4" placeholder="••••" style="font-size: 2rem; letter-spacing: 0.8rem; text-align: center; width: 150px; margin: 0 auto; display: block; border-radius: 8px; border: 2px solid var(--color-border); background: rgba(255, 255, 255, 0.05); color: var(--color-text-primary);" required autocomplete="off">
+          <input type="password" id="admin-pin-input" maxlength="4" placeholder="••••" style="font-size: 2rem; letter-spacing: 0.8rem; text-align: center; width: 150px; margin: 0 auto; display: block; border-radius: 8px; border: 2px solid var(--border-color); background: #ffffff; color: var(--text-primary);" required autocomplete="off">
         </div>
         
         <div class="modal-footer" style="justify-content: center; margin-top: 1.5rem;">
@@ -849,13 +879,153 @@
     </div>
   </div>
 
+  <!-- Modal: Importar Inventario desde Markdown -->
+  <div class="modal-overlay" id="modal-import-markdown">
+    <div class="modal-card animate-scale-in" style="max-width: 620px;">
+      <div class="modal-header">
+        <h2>📄 Importar Inventario desde Markdown</h2>
+        <button class="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 1.5rem;">
+        <p class="text-muted" style="margin-bottom: 1.25rem; font-size: 0.88rem; line-height: 1.5;">
+          Selecciona tu archivo <code>.md</code> o pega directamente una tabla o lista en formato Markdown. El sistema detectará automáticamente nombres, marcas, ubicaciones, frecuencias de mantenimiento y estados.
+        </p>
+
+        <div style="margin-bottom: 1.25rem;">
+          <input type="file" id="input-file-markdown" accept=".md,.markdown,.txt" style="display:none;">
+          <button type="button" class="btn btn-secondary btn-block" onclick="document.getElementById('input-file-markdown').click()" style="width: 100%; border: 2px dashed var(--border-color); padding: 0.9rem;">
+            📁 Seleccionar archivo Markdown (.md) desde tu equipo
+          </button>
+        </div>
+
+        <div class="form-group">
+          <label for="textarea-markdown-content" style="font-size: 0.85rem; font-weight: 600;">O pega el texto en Markdown aquí:</label>
+          <textarea id="textarea-markdown-content" rows="6" placeholder="| ID | Equipo | Marca | Ubicación | Frecuencia | Estado |
+| --- | --- | --- | --- | --- | --- |
+| TOR-01 | Torno Pinacho 1.5m | S-90 | Zona A | 90 | Operativo |
+| ESM-01 | Esmeril de Banco | Dewalt | Zona B | 30 | Operativo |" style="width: 100%; font-family: monospace; font-size: 0.82rem; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border-color); background: #faf8f5; color: var(--text-primary); resize: vertical;"></textarea>
+        </div>
+
+        <div id="markdown-preview-container" style="display:none; margin-top: 1rem; max-height: 180px; overflow-y: auto; background: #fbf9f5; border: 1px solid var(--border-color); border-radius: 8px; padding: 0.85rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.5rem;">
+            <h4 style="margin: 0; color: var(--color-accent); font-size: 0.9rem;" id="markdown-preview-title">Equipos detectados</h4>
+            <span class="badge badge-success" id="markdown-preview-badge">0 equipos</span>
+          </div>
+          <ul id="markdown-preview-list" style="font-size: 0.82rem; margin: 0; padding-left: 1.2rem; color: var(--text-primary);"></ul>
+        </div>
+
+        <div class="form-group" style="margin-top: 1.25rem;">
+          <label style="font-size: 0.85rem; font-weight: 600;">Modo de actualización:</label>
+          <div style="display: flex; gap: 1.5rem; margin-top: 0.4rem;">
+            <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; cursor: pointer;">
+              <input type="radio" name="md-import-mode" value="reemplazar" checked> Reemplazar inventario existente
+            </label>
+            <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; cursor: pointer;">
+              <input type="radio" name="md-import-mode" value="agregar"> Agregar a los equipos existentes
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary modal-cancel-btn">Cancelar</button>
+        <button type="button" class="btn btn-primary" id="btn-procesar-import-md" style="background: var(--color-accent); color: white;">
+          📥 Cargar al Inventario
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Toma de Inventario Físico -->
+  <div class="modal-overlay" id="modal-inventario-fisico">
+    <div class="modal-card animate-scale-in" style="max-width: 960px; width: 95vw;">
+      <div class="modal-header" style="flex-wrap: wrap; gap: 0.5rem;">
+        <div>
+          <h2 style="display:flex; align-items:center; gap:8px;">
+            <span>📋</span> Toma de Inventario Físico y Constatación
+          </h2>
+          <p class="text-muted" style="font-size:0.82rem; margin-top:2px;">
+            Verificación técnica en sitio de presencia, operatividad y registro de novedades de maquinaria y herramientas.
+          </p>
+        </div>
+        <button class="modal-close-btn">&times;</button>
+      </div>
+
+      <div class="modal-body" style="padding: 1.25rem; max-height: 75vh;">
+        
+        <!-- Header Bar with Stats & Controls -->
+        <div class="inv-fisico-header-bar">
+          <div class="inv-fisico-stats">
+            <span>Total: <strong id="inv-fisico-total-count">0</strong></span>
+            <span>·</span>
+            <span>Presentes: <strong id="inv-fisico-presentes-count" style="color:var(--color-success);">0</strong></span>
+            <span>·</span>
+            <span>Con Novedad: <strong id="inv-fisico-novedades-count" style="color:var(--color-warning);">0</strong></span>
+          </div>
+
+          <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+            <select id="inv-fisico-workshop-filter" style="padding: 0.35rem 0.65rem; font-size: 0.8rem; border-radius: 6px; border: 1px solid var(--border-color); background: #ffffff; color: var(--text-primary); font-weight: 500;">
+              <option value="todos">🌐 Todos los Laboratorios (279)</option>
+              <option value="manufactura">🛠️ Taller de Manufactura (37)</option>
+              <option value="ciencias_basicas">🔬 Lab. Ciencias Básicas (144)</option>
+              <option value="automatizacion">🤖 Taller de Automatización (64)</option>
+              <option value="neumatica">💨 Taller de Neumática (26)</option>
+              <option value="procesos">⚙️ Taller de Procesos (8)</option>
+            </select>
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-marcar-todos-presentes" style="font-size:0.8rem; padding: 0.35rem 0.75rem;">
+              ✓ Marcar visibles presentes
+            </button>
+            <input type="text" id="inv-fisico-search-filter" placeholder="Buscar por código o nombre..." style="padding: 0.35rem 0.65rem; font-size: 0.8rem; border-radius: 6px; border: 1px solid var(--border-color); background: #ffffff; color: var(--text-primary); width: 190px;">
+          </div>
+        </div>
+
+        <!-- Table Container -->
+        <div class="inv-fisico-table-container">
+          <table class="inv-fisico-table">
+            <thead>
+              <tr>
+                <th style="width: 70px; text-align: center;">Presente</th>
+                <th style="min-width: 200px;">Herramienta / Maquinaria</th>
+                <th style="width: 130px;">Taller / Lab</th>
+                <th style="width: 140px;">Ubicación</th>
+                <th style="width: 165px;">Estado Físico</th>
+                <th style="min-width: 200px;">Observaciones</th>
+              </tr>
+            </thead>
+            <tbody id="inv-fisico-tbody">
+              <!-- Rendered dynamically by JS -->
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+
+      <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+        <div style="font-size: 0.8rem; color: var(--text-muted);" id="inv-fisico-footer-info">
+          📅 Fecha: <span id="inv-fisico-fecha-hoy"></span> · Responsable: <strong id="inv-fisico-auditor-name" style="color:var(--color-accent);">Ing. Juan Ayala</strong>
+        </div>
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+          <button type="button" class="btn btn-secondary modal-cancel-btn">Cancelar</button>
+          <button type="button" class="btn btn-outline" id="btn-exportar-acta-pdf" style="border: 1px solid var(--color-accent); color: var(--color-accent); padding: 0.5rem 1rem;">
+            📄 Descargar Acta PDF
+          </button>
+          <button type="button" class="btn btn-primary" id="btn-guardar-inventario-fisico" style="background: linear-gradient(135deg, #10b981, #059669); border:none; color:white; padding: 0.5rem 1.25rem;">
+            💾 Guardar Auditoría
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Scripts -->
   <!-- Librerías de Terceros para generación de PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script>
-    window.jsPDF = window.jspdf.jsPDF;
+    if (window.jspdf && window.jspdf.jsPDF) {
+      window.jsPDF = window.jspdf.jsPDF;
+    }
   </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  <script src="inventario_data.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
