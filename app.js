@@ -671,7 +671,7 @@ function registrarServiceWorker() {
   if ('caches' in window) {
     caches.keys().then(names => {
       names.forEach(name => {
-        if (name !== 'mantolab-v15') caches.delete(name);
+        if (name !== 'mantolab-v16') caches.delete(name);
       });
     });
   }

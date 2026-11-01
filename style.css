@@ -133,22 +133,26 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .sidebar-header {
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+  max-width: 100%;
 }
 
-.logo {
+.sidebar-brand-box {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.5rem;
+  gap: 0.35rem;
+  max-width: 100%;
 }
 
-.sidebar-uti-logo {
-  max-width: 195px;
-  max-height: 48px;
-  width: auto;
-  object-fit: contain;
-  display: block;
+.sidebar-uti-logo, img.sidebar-uti-logo {
+  max-width: 135px !important;
+  max-height: 26px !important;
+  height: 26px !important;
+  width: auto !important;
+  object-fit: contain !important;
+  display: block !important;
 }
 
 .sidebar-brand-badge {
@@ -157,7 +161,7 @@ h1, h2, h3, h4, h5, h6 {
   gap: 5px;
   background: rgba(60, 37, 101, 0.08);
   border: 1px solid rgba(60, 37, 101, 0.15);
-  padding: 3px 8px;
+  padding: 2px 7px;
   border-radius: 6px;
   font-size: 0.72rem;
   font-weight: 700;
@@ -165,13 +169,19 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: 0.02em;
 }
 
-.sidebar-brand-badge span {
+.sidebar-brand-badge .badge-tag {
   background: var(--uti-orange);
   color: white;
   padding: 1px 5px;
   border-radius: 4px;
-  font-size: 0.68rem;
+  font-size: 0.65rem;
   font-weight: 800;
+}
+
+.sidebar-brand-badge .badge-text {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--uti-purple);
 }
 
 .logo-text {
