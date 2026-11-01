@@ -488,6 +488,7 @@ document.addEventListener("DOMContentLoaded", () => {
   cargarEstado();
   registrarServiceWorker();
   configurarEventosComunes();
+  inicializarPlanMaestroEventos();
   inicializarSPA();
   renderizarTodo();
 });
@@ -551,6 +552,100 @@ function cargarEstado() {
   if (!state.usuarios || !state.usuarios.length) state.usuarios = JSON.parse(JSON.stringify(DATOS_SEMILLA.usuarios));
   if (!state.reservas) state.reservas = JSON.parse(JSON.stringify(DATOS_SEMILLA.reservas));
   if (state.session === undefined) state.session = null;
+
+  // Inicialización de Órdenes de Trabajo del Plan Maestro (RCM/TPM)
+  if (!state.ordenesTrabajo || !Array.isArray(state.ordenesTrabajo) || state.ordenesTrabajo.length === 0) {
+    state.ordenesTrabajo = [
+      {
+        id: "OT-2026-001",
+        tipo: "Preventivo",
+        equipoId: "EQU00306",
+        equipoNombre: "TORNO PARALELO HORIZONTAL 1.5M",
+        workshop: "manufactura",
+        criticidad: "A",
+        responsable: "Ing. Juan Carlos Alulema",
+        fechaProgramada: "2026-11-05",
+        fechaCreacion: "2026-10-30",
+        fechaCierre: null,
+        horasEstimadas: 3.5,
+        estado: "En Proceso",
+        insumos: "Aceite Mobil Vactra 2 (0.5 Gal), Grasa EP-2, Guaipe industrial",
+        instrucciones: "Alineación de bancada, lubricación forzada de cabezal fijo y verificación de holgura en husillo principal.",
+        checklists: [
+          { tarea: "Desconexión LOTO de alimentación eléctrica trifásica", completado: true },
+          { tarea: "Drenaje e inspección de aceite de caja de engranajes", completado: true },
+          { tarea: "Limpieza y rectificación de guías prismáticas", completado: false },
+          { tarea: "Medición con comparador de carátula de cabeceo del husillo (<0.02 mm)", completado: false },
+          { tarea: "Prueba dinámica de avance automático en vacío", completado: false }
+        ]
+      },
+      {
+        id: "OT-2026-002",
+        tipo: "Predictivo",
+        equipoId: "SOL00004",
+        equipoNombre: "SOLDADORA MIG/MAG MILLER 250A",
+        workshop: "manufactura",
+        criticidad: "A",
+        responsable: "Téc. Roberto Guachimbo",
+        fechaProgramada: "2026-11-08",
+        fechaCreacion: "2026-10-31",
+        fechaCierre: null,
+        horasEstimadas: 2.0,
+        estado: "Abierta",
+        insumos: "Limpiador de contactos CRC, Toberas cerámicas 0.8mm, Rodillos de arrastre",
+        instrucciones: "Termografía de bornes de potencia, soplado dieléctrico interno y calibración de velocidad de alimentador de alambre.",
+        checklists: [
+          { tarea: "Inspección termográfica de bornes y transformador principal", completado: false },
+          { tarea: "Limpieza con aire seco filtrado de túnel de ventilación", completado: false },
+          { tarea: "Comprobación del solenoide de gas de protección Ar/CO2", completado: false },
+          { tarea: "Verificación de rodillos impulsores y continuidad de antorcha", completado: false }
+        ]
+      },
+      {
+        id: "OT-2026-003",
+        tipo: "Preventivo",
+        equipoId: "EQU00694",
+        equipoNombre: "ENTRENADOR PLC SIEMENS S7-1200 CPU 1214C",
+        workshop: "automatizacion",
+        criticidad: "A",
+        responsable: "Ing. Diana Moreno",
+        fechaProgramada: "2026-11-12",
+        fechaCreacion: "2026-10-28",
+        fechaCierre: null,
+        horasEstimadas: 1.5,
+        estado: "Abierta",
+        insumos: "Spray antiestático, precintos de nylon, borneras de repuesto",
+        instrucciones: "Actualización de firmware de CPU, diagnóstico de bus PROFINET y apriete de borneras I/O.",
+        checklists: [
+          { tarea: "Backup de proyecto y memoria de retención en TIA Portal", completado: false },
+          { tarea: "Ajuste de torque en bornes de alimentación 24VDC y entradas/salidas", completado: false },
+          { tarea: "Verificación de fuentes Sitop y rizado de tensión continua", completado: false },
+          { tarea: "Prueba de aislamiento y puesta a tierra del bastidor", completado: false }
+        ]
+      },
+      {
+        id: "OT-2026-004",
+        tipo: "Correctivo",
+        equipoId: "TAL00002",
+        equipoNombre: "TALADRO DE COLUMNA DE ENGRANAJES 32MM",
+        workshop: "manufactura",
+        criticidad: "B",
+        responsable: "Téc. Marco Valencia",
+        fechaProgramada: "2026-10-29",
+        fechaCreacion: "2026-10-29",
+        fechaCierre: "2026-10-30",
+        horasEstimadas: 2.5,
+        estado: "Completada",
+        insumos: "Correa trapezoidal A-42, Grasa de litio, Interruptor de parada de emergencia",
+        instrucciones: "Sustitución de botón pulsador de parada de emergencia y ajuste de tensión de correas.",
+        checklists: [
+          { tarea: "Reemplazo de switch de seguridad de tapa de poleas", completado: true },
+          { tarea: "Calibración de resorte de retroceso de mandril", completado: true },
+          { tarea: "Prueba funcional de giro horario y antihorario", completado: true }
+        ]
+      }
+    ];
+  }
 
   guardarEstado();
 }
@@ -630,6 +725,10 @@ function inicializarSPA() {
     inventario: {
       titulo: "Maquinaria e Inventario",
       subtitulo: "Administración de equipos del taller y fichas técnicas"
+    },
+    plan: {
+      titulo: "Plan Maestro de Mantenimiento",
+      subtitulo: "Matriz RCM, criticidad ABC, cronograma maestro y órdenes de trabajo (OT)"
     },
     preventivo: {
       titulo: "Mantenimiento Preventivo",
@@ -992,6 +1091,7 @@ function renderizarTodo() {
   renderizarCorrectivos();
   renderizarInsumos();
   renderizarReservas();
+  renderizarPlanMaestro();
 }
 
 function renderizarVista(vista) {
@@ -1002,6 +1102,9 @@ function renderizarVista(vista) {
       break;
     case "inventario":
       renderizarInventarioGrid();
+      break;
+    case "plan":
+      renderizarPlanMaestro();
       break;
     case "preventivo":
       renderizarPreventivos();
@@ -3756,5 +3859,1093 @@ function eliminarReserva(id) {
     } else {
       alert("Acción no autorizada.");
     }
+  }
+}
+
+// =====================================================================
+// --- MÓDULO: PLAN MAESTRO DE MANTENIMIENTO INTEGRAL (RCM / TPM) ---
+// =====================================================================
+
+function inicializarPlanMaestroEventos() {
+  // 1. Navegación por sub-pestañas internas del Plan Maestro
+  const subtabBtns = document.querySelectorAll(".plan-subtab-btn");
+  subtabBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const targetSubtab = btn.getAttribute("data-subtab");
+      subtabBtns.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      document.querySelectorAll(".plan-subtab-content").forEach(content => {
+        content.classList.remove("active");
+      });
+      const activeContent = document.getElementById(`subtab-${targetSubtab}`);
+      if (activeContent) activeContent.classList.add("active");
+    });
+  });
+
+  // 2. Filtros de Matriz de Criticidad
+  const critFilterBtns = document.querySelectorAll(".crit-filter-btn");
+  critFilterBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      critFilterBtns.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      const crit = btn.getAttribute("data-crit");
+      const search = document.getElementById("crit-search")?.value || "";
+      renderizarMatrizCriticidad(crit, search);
+    });
+  });
+
+  const critSearchInput = document.getElementById("crit-search");
+  if (critSearchInput) {
+    critSearchInput.addEventListener("input", (e) => {
+      const activeBtn = document.querySelector(".crit-filter-btn.active");
+      const crit = activeBtn ? activeBtn.getAttribute("data-crit") : "todos";
+      renderizarMatrizCriticidad(crit, e.target.value);
+    });
+  }
+
+  // 3. Filtros y Búsqueda en Órdenes de Trabajo (OT)
+  const otFilterBtns = document.querySelectorAll(".ot-filter-btn");
+  otFilterBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      otFilterBtns.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      const estado = btn.getAttribute("data-estado");
+      const search = document.getElementById("ot-search")?.value || "";
+      renderizarOrdenesTrabajo(estado, search);
+    });
+  });
+
+  const otSearchInput = document.getElementById("ot-search");
+  if (otSearchInput) {
+    otSearchInput.addEventListener("input", (e) => {
+      const activeBtn = document.querySelector(".ot-filter-btn.active");
+      const estado = activeBtn ? activeBtn.getAttribute("data-estado") : "todos";
+      renderizarOrdenesTrabajo(estado, e.target.value);
+    });
+  }
+
+  // 4. Selector de Período en Cronograma Gantt
+  const cronoPeriodoSelect = document.getElementById("cronograma-periodo-select");
+  if (cronoPeriodoSelect) {
+    cronoPeriodoSelect.addEventListener("change", (e) => {
+      renderizarCronogramaAnual(e.target.value);
+    });
+  }
+
+  // 5. Botones para apertura del Modal de Nueva OT
+  const btnNuevaOT = document.getElementById("btn-nueva-ot");
+  if (btnNuevaOT) {
+    btnNuevaOT.addEventListener("click", () => abrirModalNuevaOT());
+  }
+
+  const btnCrearOTToolbar = document.getElementById("btn-crear-ot-toolbar");
+  if (btnCrearOTToolbar) {
+    btnCrearOTToolbar.addEventListener("click", () => abrirModalNuevaOT());
+  }
+
+  // 6. Botón de Exportación General del Plan Maestro a PDF
+  const btnExportarPlanPDF = document.getElementById("btn-exportar-plan-pdf");
+  if (btnExportarPlanPDF) {
+    btnExportarPlanPDF.addEventListener("click", exportarPlanMaestroPDF);
+  }
+
+  // 7. Evento Submit del Formulario Nueva OT
+  const formNuevaOT = document.getElementById("form-nueva-ot");
+  if (formNuevaOT) {
+    formNuevaOT.addEventListener("submit", guardarNuevaOT);
+  }
+
+  // 8. Auto-completar criticidad según equipo seleccionado en Modal OT
+  const selectEquipoOT = document.getElementById("ot-equipo");
+  if (selectEquipoOT) {
+    selectEquipoOT.addEventListener("change", (e) => {
+      const eqId = e.target.value;
+      const eq = state.equipos.find(item => item.id === eqId);
+      const inputCrit = document.getElementById("ot-criticidad");
+      if (inputCrit) {
+        inputCrit.value = eq ? `Clase ${clasificarCriticidad(eq)}` : "Clase B";
+      }
+    });
+  }
+}
+
+// --- FUNCIÓN ORQUESTADORA GENERAL DEL PLAN MAESTRO ---
+function renderizarPlanMaestro() {
+  actualizarKPIsPlanMaestro();
+  renderizarMatrizCriticidad();
+  renderizarCronogramaAnual();
+  renderizarOrdenesTrabajo();
+}
+
+// --- CLASIFICACIÓN DE CRITICIDAD ABC (RCM) ---
+function clasificarCriticidad(eq) {
+  if (!eq) return "C";
+  const cat = (eq.categoria || "").toLowerCase();
+  const nom = (eq.nombre || "").toLowerCase();
+  const id = (eq.id || "").toUpperCase();
+
+  // CLASE A (Alta / Crítica): Equipos vitales cuya falla paraliza la docencia o compromete la seguridad física
+  if (
+    cat.includes("torno") || nom.includes("torno") ||
+    cat.includes("soldadura") || nom.includes("soldadora") || nom.includes("soldador") ||
+    cat.includes("compresor") || nom.includes("compresor") ||
+    cat.includes("fresadora") || nom.includes("fresadora") ||
+    cat.includes("plc") || nom.includes("plc") || nom.includes("s7-1200") ||
+    nom.includes("plasma") || nom.includes("oxicorte") ||
+    id.startsWith("EQU00306") || id.startsWith("SOL00") || (id.startsWith("EQU0069") && parseInt(id.slice(3)) <= 700)
+  ) {
+    return "A";
+  }
+
+  // CLASE B (Media / Importante): Equipos de apoyo significativo con unidades de respaldo o impacto moderado
+  if (
+    cat.includes("taladro") || nom.includes("taladro") ||
+    cat.includes("esmeril") || nom.includes("esmeril") ||
+    cat.includes("variador") || nom.includes("variador") || nom.includes("v20") ||
+    cat.includes("motor") || nom.includes("motor") ||
+    cat.includes("osciloscopio") || nom.includes("osciloscopio") ||
+    cat.includes("fuente") || nom.includes("generador") ||
+    nom.includes("amoladora") || nom.includes("calibrador") ||
+    nom.includes("banco neumático") || nom.includes("banco hidráulico")
+  ) {
+    return "B";
+  }
+
+  // CLASE C (Baja / Secundaria): Mobiliario, herramientas manuales, accesorios y elementos de bajo costo
+  return "C";
+}
+
+// --- CÁLCULO Y VISUALIZACIÓN DE KPIS MAESTROS RCM ---
+function actualizarKPIsPlanMaestro() {
+  const equiposTaller = (state.activeWorkshop && state.activeWorkshop !== "todos")
+    ? state.equipos.filter(eq => eq.workshop === state.activeWorkshop)
+    : state.equipos;
+
+  const total = equiposTaller.length;
+  if (total === 0) return;
+
+  const operativos = equiposTaller.filter(e => e.estado !== "Fuera de Servicio").length;
+  const atrasados = equiposTaller.filter(eq => new Date(eq.proximoPreventivo) < HOY_SISTEMA && eq.estado !== "Fuera de Servicio").length;
+
+  const cumplimiento = Math.round(((total - atrasados) / total) * 100);
+  const disponibilidad = ((operativos / total) * 100).toFixed(1);
+
+  // Fallas activas y OTs
+  const idsEquiposTaller = new Set(equiposTaller.map(e => e.id));
+  const fallasActivas = state.correctivos.filter(t => t.estado === "Abierto" && idsEquiposTaller.has(t.equipoId)).length;
+  const otsTaller = (state.ordenesTrabajo || []).filter(o => idsEquiposTaller.has(o.equipoId) || (!o.equipoId && (state.activeWorkshop === "todos" || o.workshop === state.activeWorkshop)));
+  const otsAbiertas = otsTaller.filter(o => o.estado !== "Completada").length;
+
+  // MTBF y MTTR estimativos de ingeniería (norma IEEE 493 / RCM)
+  const mtbfHoras = Math.round((total * 160) / (fallasActivas + 1));
+  const mttrHoras = (2.2 + (fallasActivas * 0.3)).toFixed(1);
+
+  // Actualización en DOM
+  const elCumpl = document.getElementById("plan-kpi-cumplimiento");
+  if (elCumpl) elCumpl.textContent = `${cumplimiento}%`;
+
+  const elDisp = document.getElementById("plan-kpi-disponibilidad");
+  if (elDisp) elDisp.textContent = `${disponibilidad}%`;
+
+  const elMtbf = document.getElementById("plan-kpi-mtbf");
+  if (elMtbf) elMtbf.textContent = `${mtbfHoras} hrs`;
+
+  const elMttr = document.getElementById("plan-kpi-mttr");
+  if (elMttr) elMttr.textContent = `${mttrHoras} hrs`;
+
+  const elOts = document.getElementById("plan-kpi-ot-activas");
+  if (elOts) elOts.textContent = `${otsAbiertas} Activas`;
+
+  const elOtsSub = document.getElementById("plan-kpi-ot-sub");
+  if (elOtsSub) {
+    const prevs = otsTaller.filter(o => o.estado !== "Completada" && o.tipo === "Preventivo").length;
+    const corrs = otsTaller.filter(o => o.estado !== "Completada" && o.tipo !== "Preventivo").length;
+    elOtsSub.textContent = `${prevs} preventivas · ${corrs} correctivas`;
+  }
+}
+
+// --- SUBMÓDULO 1: RENDERIZAR MATRIZ DE CRITICIDAD ABC ---
+function renderizarMatrizCriticidad(filtroCrit = "todos", search = "") {
+  const tbody = document.getElementById("criticidad-tbody");
+  if (!tbody) return;
+
+  const equiposTaller = (state.activeWorkshop && state.activeWorkshop !== "todos")
+    ? state.equipos.filter(eq => eq.workshop === state.activeWorkshop)
+    : state.equipos;
+
+  // Conteo global por criticidad del taller
+  let countA = 0, countB = 0, countC = 0;
+  equiposTaller.forEach(eq => {
+    const c = clasificarCriticidad(eq);
+    if (c === "A") countA++;
+    else if (c === "B") countB++;
+    else countC++;
+  });
+
+  const elCountA = document.getElementById("crit-count-a");
+  if (elCountA) elCountA.textContent = `${countA} Activos`;
+  const elCountB = document.getElementById("crit-count-b");
+  if (elCountB) elCountB.textContent = `${countB} Activos`;
+  const elCountC = document.getElementById("crit-count-c");
+  if (elCountC) elCountC.textContent = `${countC} Activos`;
+
+  // Filtrado reactivo de la tabla
+  const term = search.toLowerCase().trim();
+  const equiposFiltrados = equiposTaller.filter(eq => {
+    const crit = clasificarCriticidad(eq);
+    if (filtroCrit !== "todos" && crit !== filtroCrit) return false;
+    if (term) {
+      const matchId = (eq.id || "").toLowerCase().includes(term);
+      const matchNom = (eq.nombre || "").toLowerCase().includes(term);
+      const matchCat = (eq.categoria || "").toLowerCase().includes(term);
+      const matchUbi = (eq.ubicacion || "").toLowerCase().includes(term);
+      return matchId || matchNom || matchCat || matchUbi;
+    }
+    return true;
+  });
+
+  // Ordenar: primero Clase A, luego B, luego C
+  equiposFiltrados.sort((a, b) => {
+    const critA = clasificarCriticidad(a);
+    const critB = clasificarCriticidad(b);
+    if (critA !== critB) return critA.localeCompare(critB);
+    return a.id.localeCompare(b.id);
+  });
+
+  if (equiposFiltrados.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" style="text-align:center; padding: 2.5rem; color: var(--text-muted);">
+          🔍 No se encontraron equipos en la matriz de criticidad con los filtros seleccionados.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = equiposFiltrados.map(eq => {
+    const crit = clasificarCriticidad(eq);
+    const critBadgeClass = crit === "A" ? "crit-tag-a" : (crit === "B" ? "crit-tag-b" : "crit-tag-c");
+    const estrategia = crit === "A"
+      ? "RCM 1: Preventivo + Predictivo"
+      : (crit === "B" ? "RCM 2: Preventivo Trimestral" : "RCM 3: A Rotura / Semestral");
+
+    const frecDias = eq.frecuenciaDias || (crit === "A" ? 30 : (crit === "B" ? 90 : 180));
+    const estadoClass = eq.estado === "Operativo" ? "badge-success" : (eq.estado === "Mantenimiento" ? "badge-alert" : "badge-error");
+    const tallerNombre = eq.workshopNombre || getNombreTaller(eq.workshop);
+
+    return `
+      <tr>
+        <td><strong style="color:var(--color-accent); font-size:0.85rem;">${eq.id}</strong></td>
+        <td>
+          <div style="font-weight:600; color:var(--text-primary);">${eq.nombre}${eq.cantidad > 1 ? ` <span style="font-size:0.75rem; color:var(--text-muted); font-weight:normal;">(Cant: ${eq.cantidad})</span>` : ''}</div>
+          <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">${tallerNombre} · ${eq.ubicacion || 'General'}</div>
+        </td>
+        <td><span class="crit-tag ${critBadgeClass}">Clase ${crit}</span></td>
+        <td><span style="font-size:0.8rem; color:var(--text-primary); font-weight:500;">${estrategia}</span></td>
+        <td><span style="font-size:0.8rem;">Cada ${frecDias} días</span></td>
+        <td><span class="badge ${estadoClass}" style="font-size:0.75rem;">${eq.estado || 'Operativo'}</span></td>
+        <td style="text-align: right;">
+          <button class="btn btn-secondary btn-sm" onclick="abrirModalNuevaOT('${eq.id}')" style="font-size:0.78rem; padding: 4px 10px;">
+            ➕ Emitir OT
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
+
+// --- SUBMÓDULO 2: RENDERIZAR CRONOGRAMA MAESTRO ANUAL (GANTT) ---
+function renderizarCronogramaAnual(periodo = "anual") {
+  const tbody = document.getElementById("gantt-tbody");
+  if (!tbody) return;
+
+  const lineasTecnicas = [
+    {
+      tallerKey: "manufactura",
+      titulo: "Tornos Paralelos y Fresadoras Universales",
+      subtitulo: "Taller de Manufactura · Torno 1.5m (EQU00306), Fresadora",
+      criticidad: "A",
+      frecuencia: "Mensual",
+      meses: [
+        { mes: 1, tipo: "prev", label: "Prev." },
+        { mes: 2, tipo: "major", label: "P. Mayor" },
+        { mes: 3, tipo: "prev", label: "Prev." },
+        { mes: 4, tipo: "prev", label: "Prev." },
+        { mes: 5, tipo: "prev", label: "Prev." },
+        { mes: 6, tipo: "prev", label: "Prev." },
+        { mes: 7, tipo: "major", label: "P. Mayor" },
+        { mes: 8, tipo: "prev", label: "Prev." },
+        { mes: 9, tipo: "prev", label: "Prev." },
+        { mes: 10, tipo: "prev", label: "Prev." },
+        { mes: 11, tipo: "prev", label: "Prev." },
+        { mes: 12, tipo: "prev", label: "Prev." }
+      ]
+    },
+    {
+      tallerKey: "manufactura",
+      titulo: "Estaciones de Soldadura MIG/MAG y Arco",
+      subtitulo: "Taller de Manufactura · Miller 250A (SOL00004 a 00006)",
+      criticidad: "A",
+      frecuencia: "Mensual",
+      meses: [
+        { mes: 1, tipo: "prev", label: "Prev." },
+        { mes: 2, tipo: "prev", label: "Prev." },
+        { mes: 3, tipo: "major", label: "P. Mayor" },
+        { mes: 4, tipo: "prev", label: "Prev." },
+        { mes: 5, tipo: "prev", label: "Prev." },
+        { mes: 6, tipo: "prev", label: "Prev." },
+        { mes: 7, tipo: "prev", label: "Prev." },
+        { mes: 8, tipo: "major", label: "P. Mayor" },
+        { mes: 9, tipo: "prev", label: "Prev." },
+        { mes: 10, tipo: "prev", label: "Prev." },
+        { mes: 11, tipo: "prev", label: "Prev." },
+        { mes: 12, tipo: "prev", label: "Prev." }
+      ]
+    },
+    {
+      tallerKey: "automatizacion",
+      titulo: "Entrenadores PLC Siemens S7-1200 y HMIs",
+      subtitulo: "Taller de Automatización · Bancos Didácticos Industriales",
+      criticidad: "A",
+      frecuencia: "Bimestral",
+      meses: [
+        { mes: 1, tipo: "none" },
+        { mes: 2, tipo: "major", label: "Firmware" },
+        { mes: 3, tipo: "none" },
+        { mes: 4, tipo: "prev", label: "Prev." },
+        { mes: 5, tipo: "none" },
+        { mes: 6, tipo: "prev", label: "Prev." },
+        { mes: 7, tipo: "major", label: "Calib." },
+        { mes: 8, tipo: "none" },
+        { mes: 9, tipo: "prev", label: "Prev." },
+        { mes: 10, tipo: "none" },
+        { mes: 11, tipo: "prev", label: "Prev." },
+        { mes: 12, tipo: "none" }
+      ]
+    },
+    {
+      tallerKey: "automatizacion",
+      titulo: "Bancos de Variadores de Frecuencia Sinamics V20",
+      subtitulo: "Taller de Automatización · Motores trifásicos y encoders",
+      criticidad: "B",
+      frecuencia: "Trimestral",
+      meses: [
+        { mes: 1, tipo: "prev", label: "Prev." },
+        { mes: 2, tipo: "none" },
+        { mes: 3, tipo: "none" },
+        { mes: 4, tipo: "prev", label: "Prev." },
+        { mes: 5, tipo: "none" },
+        { mes: 6, tipo: "none" },
+        { mes: 7, tipo: "prev", label: "Prev." },
+        { mes: 8, tipo: "none" },
+        { mes: 9, tipo: "none" },
+        { mes: 10, tipo: "prev", label: "Prev." },
+        { mes: 11, tipo: "none" },
+        { mes: 12, tipo: "none" }
+      ]
+    },
+    {
+      tallerKey: "neumatica",
+      titulo: "Compresor Central y Red Neumática Principal",
+      subtitulo: "Taller de Neumática · Presostato, FRL y Purga de Condensados",
+      criticidad: "A",
+      frecuencia: "Mensual",
+      meses: [
+        { mes: 1, tipo: "prev", label: "Purga" },
+        { mes: 2, tipo: "prev", label: "Filtros" },
+        { mes: 3, tipo: "major", label: "Aceite/P." },
+        { mes: 4, tipo: "prev", label: "Purga" },
+        { mes: 5, tipo: "prev", label: "Prev." },
+        { mes: 6, tipo: "prev", label: "Prev." },
+        { mes: 7, tipo: "major", label: "P. Mayor" },
+        { mes: 8, tipo: "prev", label: "Purga" },
+        { mes: 9, tipo: "prev", label: "Prev." },
+        { mes: 10, tipo: "prev", label: "Filtros" },
+        { mes: 11, tipo: "prev", label: "Prev." },
+        { mes: 12, tipo: "prev", label: "Prev." }
+      ]
+    },
+    {
+      tallerKey: "ciencias_basicas",
+      titulo: "Instrumentación, Fuentes y Osciloscopios Digitales",
+      subtitulo: "Lab. Ciencias Básicas · Calibración y Comprobación Eléctrica",
+      criticidad: "B",
+      frecuencia: "Semestral",
+      meses: [
+        { mes: 1, tipo: "none" },
+        { mes: 2, tipo: "major", label: "Calibración" },
+        { mes: 3, tipo: "none" },
+        { mes: 4, tipo: "none" },
+        { mes: 5, tipo: "none" },
+        { mes: 6, tipo: "none" },
+        { mes: 7, tipo: "major", label: "Calibración" },
+        { mes: 8, tipo: "none" },
+        { mes: 9, tipo: "none" },
+        { mes: 10, tipo: "none" },
+        { mes: 11, tipo: "none" },
+        { mes: 12, tipo: "none" }
+      ]
+    },
+    {
+      tallerKey: "procesos",
+      titulo: "Prensas, Cizallas y Bancadas de Ajuste Mecánico",
+      subtitulo: "Taller de Procesos · Alineación, Cuchillas y Mordazas",
+      criticidad: "B",
+      frecuencia: "Bimestral",
+      meses: [
+        { mes: 1, tipo: "none" },
+        { mes: 2, tipo: "prev", label: "Prev." },
+        { mes: 3, tipo: "none" },
+        { mes: 4, tipo: "prev", label: "Prev." },
+        { mes: 5, tipo: "none" },
+        { mes: 6, tipo: "prev", label: "Prev." },
+        { mes: 7, tipo: "major", label: "Afilado" },
+        { mes: 8, tipo: "none" },
+        { mes: 9, tipo: "prev", label: "Prev." },
+        { mes: 10, tipo: "none" },
+        { mes: 11, tipo: "prev", label: "Prev." },
+        { mes: 12, tipo: "none" }
+      ]
+    }
+  ];
+
+  // Filtrar si hay un taller activo específico
+  const lineasFiltradas = (state.activeWorkshop && state.activeWorkshop !== "todos")
+    ? lineasTecnicas.filter(l => l.tallerKey === state.activeWorkshop)
+    : lineasTecnicas;
+
+  const mesActual = HOY_SISTEMA.getMonth() + 1; // 1 a 12
+
+  tbody.innerHTML = lineasFiltradas.map(linea => {
+    const critBadgeClass = linea.criticidad === "A" ? "crit-tag-a" : "crit-tag-b";
+
+    const celdasMeses = linea.meses.map(m => {
+      const esMesActual = m.mes === mesActual;
+      const cellBgStyle = esMesActual ? "background: rgba(16, 185, 129, 0.08); outline: 2px solid rgba(16, 185, 129, 0.3);" : "";
+
+      if (m.tipo === "prev") {
+        return `<td style="${cellBgStyle}"><span class="gantt-pill gantt-pill-prev" title="Mantenimiento Preventivo Programado">${m.label}</span></td>`;
+      } else if (m.tipo === "major") {
+        return `<td style="${cellBgStyle}"><span class="gantt-pill gantt-pill-major" title="Parada Técnica Mayor">${m.label}</span></td>`;
+      } else if (m.tipo === "corr") {
+        return `<td style="${cellBgStyle}"><span class="gantt-pill gantt-pill-corr" title="Correctivo">${m.label}</span></td>`;
+      }
+      return `<td style="${cellBgStyle}"><span style="color:var(--text-muted); font-size:0.75rem;">-</span></td>`;
+    }).join("");
+
+    return `
+      <tr>
+        <td style="text-align: left;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span class="crit-tag ${critBadgeClass}">Clase ${linea.criticidad}</span>
+            <strong style="color:var(--text-primary); font-size:0.88rem;">${linea.titulo}</strong>
+          </div>
+          <div style="font-size:0.75rem; color:var(--text-muted); margin-top:3px;">${linea.subtitulo} · Frec: ${linea.frecuencia}</div>
+        </td>
+        ${celdasMeses}
+      </tr>
+    `;
+  }).join("");
+}
+
+// --- SUBMÓDULO 3: RENDERIZAR ÓRDENES DE TRABAJO (OT) ---
+function renderizarOrdenesTrabajo(filtroEstado = "todos", search = "") {
+  const container = document.getElementById("ot-cards-grid");
+  if (!container) return;
+
+  const ordenes = state.ordenesTrabajo || [];
+
+  // Filtrar por taller si no es "todos"
+  const otsTaller = (state.activeWorkshop && state.activeWorkshop !== "todos")
+    ? ordenes.filter(o => {
+        if (o.workshop) return o.workshop === state.activeWorkshop;
+        const eq = state.equipos.find(e => e.id === o.equipoId);
+        return eq ? eq.workshop === state.activeWorkshop : true;
+      })
+    : ordenes;
+
+  const term = search.toLowerCase().trim();
+  const otsFiltradas = otsTaller.filter(o => {
+    if (filtroEstado !== "todos" && o.estado !== filtroEstado) return false;
+    if (term) {
+      const matchId = (o.id || "").toLowerCase().includes(term);
+      const matchNom = (o.equipoNombre || "").toLowerCase().includes(term);
+      const matchResp = (o.responsable || "").toLowerCase().includes(term);
+      const matchTipo = (o.tipo || "").toLowerCase().includes(term);
+      return matchId || matchNom || matchResp || matchTipo;
+    }
+    return true;
+  });
+
+  // Ordenar: primero Abiertas y En Proceso, luego Completadas
+  otsFiltradas.sort((a, b) => {
+    if (a.estado === "Completada" && b.estado !== "Completada") return 1;
+    if (a.estado !== "Completada" && b.estado === "Completada") return -1;
+    return new Date(b.fechaProgramada) - new Date(a.fechaProgramada);
+  });
+
+  if (otsFiltradas.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state glass-panel" style="grid-column: 1 / -1; padding: 3rem 1.5rem; text-align: center;">
+        <div style="font-size: 2.8rem; margin-bottom: 0.5rem;">📋</div>
+        <h3 style="color:var(--text-primary); font-size:1.15rem;">No hay órdenes de trabajo activas</h3>
+        <p style="color:var(--text-muted); font-size:0.85rem; max-width:480px; margin: 0.5rem auto 1.25rem;">
+          No se encontraron órdenes de trabajo registradas con el filtro seleccionado.
+        </p>
+        <button class="btn btn-primary btn-sm" onclick="abrirModalNuevaOT()">➕ Crear Nueva Orden de Trabajo</button>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = otsFiltradas.map(ot => {
+    const crit = ot.criticidad || "B";
+    const critClass = crit === "A" ? "crit-tag-a" : (crit === "B" ? "crit-tag-b" : "crit-tag-c");
+
+    let statusBadgeClass = "ot-status-abierta";
+    if (ot.estado === "En Proceso") statusBadgeClass = "ot-status-proceso";
+    else if (ot.estado === "Completada") statusBadgeClass = "ot-status-completada";
+
+    const checklists = ot.checklists || [];
+    const totalTareas = checklists.length;
+    const tareasCompletadas = checklists.filter(t => t.completado).length;
+    const progresoPorcentaje = totalTareas > 0 ? Math.round((tareasCompletadas / totalTareas) * 100) : 0;
+
+    const tallerNombre = ot.workshop ? getNombreTaller(ot.workshop) : "Taller de Manufactura";
+
+    return `
+      <div class="ot-card glass-panel" id="card-${ot.id}">
+        <div class="ot-card-header">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span class="ot-id-badge">${ot.id}</span>
+            <span class="badge ${ot.tipo === 'Preventivo' ? 'badge-success' : (ot.tipo === 'Predictivo' ? 'badge-accent' : 'badge-alert')}" style="font-size:0.72rem;">${ot.tipo}</span>
+            <span class="crit-tag ${critClass}">Clase ${crit}</span>
+          </div>
+          <span class="ot-status-badge ${statusBadgeClass}">${ot.estado}</span>
+        </div>
+
+        <div class="ot-card-body" style="margin-top:0.75rem;">
+          <h4 class="ot-equipo-title">${ot.equipoNombre}</h4>
+          <p class="ot-meta-sub">${tallerNombre} · Código: <strong style="color:var(--color-accent);">${ot.equipoId}</strong></p>
+
+          <div class="ot-meta-grid">
+            <div class="ot-meta-item">
+              <span class="ot-meta-label">📅 Programada</span>
+              <span class="ot-meta-val">${ot.fechaProgramada}</span>
+            </div>
+            <div class="ot-meta-item">
+              <span class="ot-meta-label">⏱️ Tiempo Estimado</span>
+              <span class="ot-meta-val">${ot.horasEstimadas} horas</span>
+            </div>
+            <div class="ot-meta-item" style="grid-column: 1 / -1;">
+              <span class="ot-meta-label">👤 Técnico / Responsable</span>
+              <span class="ot-meta-val">${ot.responsable}</span>
+            </div>
+          </div>
+
+          ${ot.insumos ? `
+            <div class="ot-insumos-box">
+              <strong>🛠️ Insumos / Repuestos:</strong> ${ot.insumos}
+            </div>
+          ` : ""}
+
+          ${ot.instrucciones ? `
+            <p style="font-size:0.8rem; color:var(--text-secondary); margin-top:0.6rem; line-height:1.4;">
+              <strong>📝 Procedimiento:</strong> ${ot.instrucciones}
+            </p>
+          ` : ""}
+
+          <!-- Progreso del Checklist -->
+          <div class="ot-checklist-container">
+            <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.78rem; font-weight:600; margin-bottom: 6px;">
+              <span>Actividades Técnicas (${tareasCompletadas}/${totalTareas})</span>
+              <span style="color:var(--color-accent);">${progresoPorcentaje}%</span>
+            </div>
+            <div class="progress-bar-container" style="height:6px; background:var(--border-color); border-radius:10px; overflow:hidden; margin-bottom:10px;">
+              <div style="height:100%; width:${progresoPorcentaje}%; background:linear-gradient(90deg, #10b981, #06b6d4); border-radius:10px; transition: width 0.3s ease;"></div>
+            </div>
+
+            <div class="ot-checklist-tasks">
+              ${checklists.map((t, idx) => `
+                <label class="ot-task-item" style="display:flex; align-items:center; gap:8px; font-size:0.78rem; color:var(--text-primary); cursor:pointer; margin-bottom:5px;">
+                  <input type="checkbox" ${t.completado ? 'checked' : ''} onchange="toggleTareaOT('${ot.id}', ${idx})" style="accent-color:var(--color-accent); cursor:pointer;">
+                  <span style="${t.completado ? 'text-decoration: line-through; opacity: 0.6;' : ''}">${t.tarea}</span>
+                </label>
+              `).join("")}
+            </div>
+          </div>
+        </div>
+
+        <div class="ot-card-footer">
+          <div style="display:flex; gap:8px; align-items:center;">
+            ${ot.estado === "Abierta" ? `
+              <button class="btn btn-secondary btn-sm" onclick="cambiarEstadoOT('${ot.id}', 'En Proceso')">▶️ Iniciar OT</button>
+            ` : ""}
+            ${ot.estado === "En Proceso" ? `
+              <button class="btn btn-success btn-sm" onclick="cambiarEstadoOT('${ot.id}', 'Completada')">✅ Finalizar OT</button>
+            ` : ""}
+            ${ot.estado === "Completada" ? `
+              <span style="font-size:0.78rem; color:var(--color-success); font-weight:600; display:flex; align-items:center; gap:4px;">
+                ✔️ Concluida ${ot.fechaCierre ? `el ${ot.fechaCierre}` : ''}
+              </span>
+            ` : ""}
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="imprimirOrdenTrabajoPDF('${ot.id}')" title="Descargar Hoja de Trabajo Técnica">
+            🖨️ PDF
+          </button>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+// --- GESTIÓN INTERACTIVA DE TAREAS Y ESTADOS DE OT ---
+function toggleTareaOT(idOT, indexTarea) {
+  const ot = (state.ordenesTrabajo || []).find(o => o.id === idOT);
+  if (!ot || !ot.checklists || !ot.checklists[indexTarea]) return;
+
+  ot.checklists[indexTarea].completado = !ot.checklists[indexTarea].completado;
+
+  // Si todas las tareas están completadas, sugerir pasar a En Proceso
+  const completadas = ot.checklists.filter(t => t.completado).length;
+  if (completadas > 0 && ot.estado === "Abierta") {
+    ot.estado = "En Proceso";
+  }
+
+  guardarEstado();
+  renderizarOrdenesTrabajo(document.querySelector(".ot-filter-btn.active")?.getAttribute("data-estado") || "todos");
+}
+
+function cambiarEstadoOT(idOT, nuevoEstado) {
+  const ot = (state.ordenesTrabajo || []).find(o => o.id === idOT);
+  if (!ot) return;
+
+  ot.estado = nuevoEstado;
+  if (nuevoEstado === "Completada") {
+    ot.fechaCierre = new Date().toISOString().split("T")[0];
+    // Marcar todas las tareas como completadas
+    if (ot.checklists) {
+      ot.checklists.forEach(t => t.completado = true);
+    }
+    // Registrar también como preventivo en el histórico de mantenimientos
+    const eq = state.equipos.find(e => e.id === ot.equipoId);
+    if (eq) {
+      eq.ultimoMantenimiento = ot.fechaCierre;
+      // Recalcular próximo preventivo sumando su frecuencia
+      const frec = eq.frecuenciaDias || 30;
+      const proximo = new Date();
+      proximo.setDate(proximo.getDate() + frec);
+      eq.proximoPreventivo = proximo.toISOString().split("T")[0];
+    }
+  }
+
+  guardarEstado();
+  actualizarKPIsPlanMaestro();
+  renderizarOrdenesTrabajo(document.querySelector(".ot-filter-btn.active")?.getAttribute("data-estado") || "todos");
+  renderizarPreventivos();
+  renderizarDashboard();
+  alert(`Orden de Trabajo ${ot.id} actualizada a: "${nuevoEstado}" ✅`);
+}
+
+// --- MODAL: CREACIÓN Y GENERACIÓN DE NUEVA OT ---
+function abrirModalNuevaOT(preselectedEquipoId = null) {
+  const selectEquipo = document.getElementById("ot-equipo");
+  const inputCodigo = document.getElementById("ot-codigo");
+  const inputFecha = document.getElementById("ot-fecha-programada");
+  const inputResp = document.getElementById("ot-responsable");
+  const inputCrit = document.getElementById("ot-criticidad");
+
+  if (!selectEquipo) return;
+
+  // Generar código autoincremental
+  const numOT = (state.ordenesTrabajo || []).length + 1;
+  const nuevoCodigo = `OT-2026-${String(numOT).padStart(3, '0')}`;
+  if (inputCodigo) inputCodigo.value = nuevoCodigo;
+
+  // Llenar selector de equipos
+  selectEquipo.innerHTML = `
+    <option value="">-- Seleccionar Equipo o Máquina del Taller --</option>
+    ${state.equipos.map(eq => `
+      <option value="${eq.id}">[${eq.id}] ${eq.nombre} (${getNombreTaller(eq.workshop)})</option>
+    `).join("")}
+  `;
+
+  if (preselectedEquipoId) {
+    selectEquipo.value = preselectedEquipoId;
+    const eq = state.equipos.find(e => e.id === preselectedEquipoId);
+    if (eq && inputCrit) {
+      inputCrit.value = `Clase ${clasificarCriticidad(eq)}`;
+    }
+  } else {
+    if (inputCrit) inputCrit.value = "Clase A";
+  }
+
+  // Establecer fecha por defecto a mañana
+  const manana = new Date();
+  manana.setDate(manana.getDate() + 1);
+  if (inputFecha) inputFecha.value = manana.toISOString().split("T")[0];
+
+  // Responsable por defecto
+  if (inputResp) {
+    inputResp.value = state.session ? state.session.nombre : "Ing. Juan Carlos Alulema";
+  }
+
+  abrirModal("modal-nueva-ot");
+}
+
+function guardarNuevaOT(e) {
+  e.preventDefault();
+
+  const id = document.getElementById("ot-codigo").value;
+  const tipo = document.getElementById("ot-tipo").value;
+  const equipoId = document.getElementById("ot-equipo").value;
+  const responsable = document.getElementById("ot-responsable").value.trim();
+  const fechaProgramada = document.getElementById("ot-fecha-programada").value;
+  const horasEstimadas = parseFloat(document.getElementById("ot-horas-estimadas").value) || 2.0;
+  const insumos = document.getElementById("ot-insumos").value.trim();
+  const instrucciones = document.getElementById("ot-instrucciones").value.trim();
+
+  if (!equipoId) {
+    alert("Por favor selecciona un equipo de la lista para emitir la Orden de Trabajo.");
+    return;
+  }
+
+  const equipo = state.equipos.find(e => e.id === equipoId);
+  const equipoNombre = equipo ? equipo.nombre : "Equipo Industrial";
+  const workshop = equipo ? equipo.workshop : (state.activeWorkshop || "manufactura");
+  const criticidad = equipo ? clasificarCriticidad(equipo) : "B";
+
+  // Generar checklists inteligentes según el tipo y criticidad
+  let checklists = [];
+  if (tipo === "Predictivo") {
+    checklists = [
+      { tarea: "Inspección termográfica de bornes eléctricos y contactores", completado: false },
+      { tarea: "Análisis espectral de vibraciones en rodamientos y acoples", completado: false },
+      { tarea: "Medición de aislamiento de devanados (Megóhmetro > 100 MΩ)", completado: false }
+    ];
+  } else if (tipo === "Correctivo") {
+    checklists = [
+      { tarea: "Bloqueo de energía y consignación LOTO del tablero", completado: false },
+      { tarea: "Desmontaje e inspección del componente averiado", completado: false },
+      { tarea: "Instalación de repuesto original y prueba de torque", completado: false },
+      { tarea: "Puesta en marcha supervisada en vacío y bajo carga", completado: false }
+    ];
+  } else {
+    checklists = [
+      { tarea: "Desconexión segura y limpieza general de virutas o polvo", completado: false },
+      { tarea: "Comprobación y reposición de niveles de fluidos y aceites", completado: false },
+      { tarea: "Verificación de ajustes mecánicos y juego axial", completado: false },
+      { tarea: "Inspección funcional de botones de parada de emergencia y guardas", completado: false }
+    ];
+  }
+
+  const nuevaOT = {
+    id,
+    tipo,
+    equipoId,
+    equipoNombre,
+    workshop,
+    criticidad,
+    responsable,
+    fechaProgramada,
+    fechaCreacion: new Date().toISOString().split("T")[0],
+    fechaCierre: null,
+    horasEstimadas,
+    estado: "Abierta",
+    insumos,
+    instrucciones,
+    checklists
+  };
+
+  if (!state.ordenesTrabajo) state.ordenesTrabajo = [];
+  state.ordenesTrabajo.unshift(nuevaOT);
+  guardarEstado();
+
+  cerrarModal("modal-nueva-ot");
+  document.getElementById("form-nueva-ot").reset();
+
+  renderizarPlanMaestro();
+  alert(`✅ Orden de Trabajo ${id} registrada con éxito en el Plan Maestro.`);
+}
+
+// --- SUBMÓDULO: EXPORTACIÓN DEL PLAN MAESTRO A PDF INSTITUCIONAL ---
+function exportarPlanMaestroPDF() {
+  const jsPDFLib = window.jsPDF || (window.jspdf && window.jspdf.jsPDF);
+  if (!jsPDFLib) {
+    alert("La librería de generación PDF (jsPDF) no está disponible. Por favor, asegúrate de tener conexión a internet.");
+    return;
+  }
+
+  try {
+    const doc = new jsPDFLib({ orientation: "portrait", unit: "mm", format: "a4" });
+    const fechaEmision = new Date().toLocaleDateString('es-EC', { day: '2-digit', month: 'long', year: 'numeric' });
+    const tallerNombre = getNombreTaller(state.activeWorkshop || "todos");
+
+    // Cabecera Institucional
+    doc.setFillColor(15, 23, 42); // Navy Dark UTI
+    doc.rect(0, 0, 210, 28, "F");
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(13);
+    doc.text("UNIVERSIDAD TECNOLÓGICA INDOAMÉRICA", 105, 10, { align: "center" });
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8.5);
+    doc.text(`FACULTAD DE INGENIERÍA Y CIENCIAS APLICADAS · ${tallerNombre.toUpperCase()}`, 105, 16, { align: "center" });
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8.5);
+    doc.text("PLAN MAESTRO DE MANTENIMIENTO INTEGRAL (RCM / TPM) · AÑO 2026", 105, 22, { align: "center" });
+
+    // Resumen Ejecutivo de Indicadores (KPIs)
+    doc.setDrawColor(203, 213, 225);
+    doc.setFillColor(248, 250, 252);
+    doc.roundedRect(14, 32, 182, 24, 2, 2, "FD");
+
+    const equiposTaller = (state.activeWorkshop && state.activeWorkshop !== "todos")
+      ? state.equipos.filter(eq => eq.workshop === state.activeWorkshop)
+      : state.equipos;
+
+    const total = equiposTaller.length;
+    const operativos = equiposTaller.filter(e => e.estado !== "Fuera de Servicio").length;
+    const atrasados = equiposTaller.filter(eq => new Date(eq.proximoPreventivo) < HOY_SISTEMA && eq.estado !== "Fuera de Servicio").length;
+    const cumplimiento = total > 0 ? Math.round(((total - atrasados) / total) * 100) : 100;
+    const disponibilidad = total > 0 ? ((operativos / total) * 100).toFixed(1) : "100.0";
+
+    doc.setTextColor(30, 41, 59);
+    doc.setFontSize(8.5);
+    doc.setFont("helvetica", "bold");
+    doc.text(`Fecha de Emisión: ${fechaEmision}`, 18, 38);
+    doc.text(`Ámbito Técnico: ${tallerNombre} (${total} Activos)`, 18, 44);
+    doc.text(`Responsable: ${state.session ? state.session.nombre : 'Ing. Juan Carlos Alulema'}`, 18, 50);
+
+    doc.text(`Cumplimiento Preventivo: ${cumplimiento}%`, 120, 38);
+    doc.text(`Disponibilidad de Máquinas: ${disponibilidad}%`, 120, 44);
+    doc.text(`Confiabilidad (MTBF Estimado): 380 hrs`, 120, 50);
+
+    // Tabla de Matriz RCM de Activos
+    const rows = equiposTaller.map(eq => {
+      const crit = clasificarCriticidad(eq);
+      const estrategia = crit === "A" ? "RCM 1: Prev. Mensual + Predictivo" : (crit === "B" ? "RCM 2: Prev. Trimestral Sistemático" : "RCM 3: A Rotura / Semestral");
+      const frec = eq.frecuenciaDias ? `${eq.frecuenciaDias} días` : "30 días";
+      const taller = eq.workshopNombre || getNombreTaller(eq.workshop);
+      return [
+        eq.id,
+        `${eq.nombre}${eq.cantidad > 1 ? ` (${eq.cantidad}u)` : ''}`,
+        taller,
+        `Clase ${crit}`,
+        estrategia,
+        frec,
+        eq.estado || "Operativo"
+      ];
+    });
+
+    if (typeof doc.autoTable === "function") {
+      doc.autoTable({
+        startY: 60,
+        head: [["Código", "Activo / Maquinaria", "Taller / Lab", "Criticidad", "Estrategia RCM", "Frec.", "Estado"]],
+        body: rows,
+        theme: "striped",
+        headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: "bold", fontSize: 7.5 },
+        styles: { fontSize: 7, cellPadding: 2 },
+        columnStyles: {
+          0: { cellWidth: 18 },
+          1: { cellWidth: 50 },
+          2: { cellWidth: 32 },
+          3: { cellWidth: 16, halign: "center" },
+          4: { cellWidth: 38 },
+          5: { cellWidth: 14, halign: "center" },
+          6: { cellWidth: 14, halign: "center" }
+        },
+        margin: { left: 14, right: 14 }
+      });
+
+      let finalY = doc.lastAutoTable.finalY + 16;
+      if (finalY > 255) {
+        doc.addPage();
+        finalY = 30;
+      }
+
+      // Sección de Firmas Institucionales
+      doc.setDrawColor(100, 116, 139);
+      doc.line(25, finalY, 85, finalY);
+      doc.line(125, finalY, 185, finalY);
+
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "bold");
+      doc.text("ING. JUAN CARLOS ALULEMA", 55, finalY + 5, { align: "center" });
+      doc.setFont("helvetica", "normal");
+      doc.text("Coordinador de Talleres y Laboratorios", 55, finalY + 9, { align: "center" });
+
+      doc.setFont("helvetica", "bold");
+      doc.text("DECANATO DE FACULTAD", 155, finalY + 5, { align: "center" });
+      doc.setFont("helvetica", "normal");
+      doc.text("Aprobación Plan Maestro RCM / TPM", 155, finalY + 9, { align: "center" });
+    }
+
+    doc.save(`Plan_Maestro_Mantenimiento_UTI_${state.activeWorkshop || 'Consolidado'}_2026.pdf`);
+  } catch (err) {
+    console.error("Error al exportar Plan Maestro en PDF:", err);
+    alert("Hubo un error al generar el PDF del Plan Maestro.");
+  }
+}
+
+// --- SUBMÓDULO: EXPORTACIÓN INDIVIDUAL DE ORDEN DE TRABAJO (OT) ---
+function imprimirOrdenTrabajoPDF(idOT) {
+  const jsPDFLib = window.jsPDF || (window.jspdf && window.jspdf.jsPDF);
+  if (!jsPDFLib) {
+    alert("La librería de generación PDF (jsPDF) no está disponible.");
+    return;
+  }
+  const ot = (state.ordenesTrabajo || []).find(o => o.id === idOT);
+  if (!ot) return;
+
+  try {
+    const doc = new jsPDFLib({ orientation: "portrait", unit: "mm", format: "a4" });
+
+    // Cabecera Institucional
+    doc.setFillColor(15, 23, 42); // Navy Dark UTI
+    doc.rect(0, 0, 210, 28, "F");
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(13);
+    doc.text("UNIVERSIDAD TECNOLÓGICA INDOAMÉRICA", 105, 11, { align: "center" });
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.text("FACULTAD DE INGENIERÍA Y CIENCIAS APLICADAS · DIRECCIÓN DE TALLERES", 105, 17, { align: "center" });
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9.5);
+    doc.text(`ORDEN DE TRABAJO TÉCNICA · ${ot.id}`, 105, 23, { align: "center" });
+
+    // Cuadro de Datos Principales
+    doc.setDrawColor(203, 213, 225);
+    doc.setFillColor(248, 250, 252);
+    doc.roundedRect(14, 34, 182, 38, 3, 3, "FD");
+
+    doc.setTextColor(30, 41, 59);
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "bold");
+    doc.text("Código OT:", 18, 41);
+    doc.setFont("helvetica", "normal");
+    doc.text(ot.id, 42, 41);
+
+    doc.setFont("helvetica", "bold");
+    doc.text("Tipo de Mantenimiento:", 80, 41);
+    doc.setFont("helvetica", "normal");
+    doc.text(ot.tipo, 122, 41);
+
+    doc.setFont("helvetica", "bold");
+    doc.text("Criticidad:", 152, 41);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Clase ${ot.criticidad}`, 172, 41);
+
+    doc.setFont("helvetica", "bold");
+    doc.text("Equipo / Activo:", 18, 48);
+    doc.setFont("helvetica", "normal");
+    doc.text(`${ot.equipoNombre} (${ot.equipoId})`, 48, 48);
+
+    doc.setFont("helvetica", "bold");
+    doc.text("Instalación / Lab:", 18, 55);
+    doc.setFont("helvetica", "normal");
+    doc.text(getNombreTaller(ot.workshop), 48, 55);
+
+    doc.setFont("helvetica", "bold");
+    doc.text("Técnico Asignado:", 18, 62);
+    doc.setFont("helvetica", "normal");
+    doc.text(ot.responsable, 50, 62);
+
+    doc.setFont("helvetica", "bold");
+    doc.text("Fecha Prog.:", 115, 62);
+    doc.setFont("helvetica", "normal");
+    doc.text(ot.fechaProgramada, 137, 62);
+
+    doc.setFont("helvetica", "bold");
+    doc.text("Horas Est.:", 162, 62);
+    doc.setFont("helvetica", "normal");
+    doc.text(`${ot.horasEstimadas} hrs`, 182, 62);
+
+    // Instrucciones e Insumos
+    let currentY = 78;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9.5);
+    doc.text("1. INSUMOS Y HERRAMIENTAS REQUERIDAS", 14, currentY);
+    currentY += 5;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8.5);
+    const insumosText = doc.splitTextToSize(ot.insumos || "No se especificaron consumibles adicionales.", 182);
+    doc.text(insumosText, 14, currentY);
+    currentY += (insumosText.length * 4.5) + 4;
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9.5);
+    doc.text("2. INSTRUCCIONES TÉCNICAS Y PROCEDIMIENTO OPERATIVO", 14, currentY);
+    currentY += 5;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8.5);
+    const instText = doc.splitTextToSize(ot.instrucciones || "Ejecutar conforme al protocolo estándar del taller.", 182);
+    doc.text(instText, 14, currentY);
+    currentY += (instText.length * 4.5) + 6;
+
+    // Checklists
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9.5);
+    doc.text("3. CHECKLIST DE ACTIVIDADES Y VERIFICACIÓN DE SEGURIDAD", 14, currentY);
+    currentY += 6;
+
+    const checklistRows = (ot.checklists || []).map((c, i) => [
+      `[ ${c.completado ? 'X' : '  '} ]`,
+      `Paso ${i + 1}: ${c.tarea}`,
+      c.completado ? "REALIZADO" : "PENDIENTE"
+    ]);
+
+    if (typeof doc.autoTable === "function") {
+      doc.autoTable({
+        startY: currentY,
+        head: [["Estado", "Descripción de la Tarea / Actividad", "Conformidad"]],
+        body: checklistRows,
+        theme: "grid",
+        headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: "bold", fontSize: 8 },
+        styles: { fontSize: 8, cellPadding: 2 },
+        columnStyles: {
+          0: { cellWidth: 18, halign: "center" },
+          1: { cellWidth: 135 },
+          2: { cellWidth: 29, halign: "center" }
+        },
+        margin: { left: 14, right: 14 }
+      });
+      currentY = doc.lastAutoTable.finalY + 18;
+    } else {
+      currentY += 40;
+    }
+
+    if (currentY > 240) {
+      doc.addPage();
+      currentY = 30;
+    }
+
+    // Firmas de Conformidad
+    doc.setDrawColor(100, 116, 139);
+    doc.line(25, currentY, 85, currentY);
+    doc.line(125, currentY, 185, currentY);
+
+    doc.setFontSize(8.5);
+    doc.setFont("helvetica", "bold");
+    doc.text("TÉCNICO / DOCENTE EJECUTOR", 55, currentY + 5, { align: "center" });
+    doc.setFont("helvetica", "normal");
+    doc.text(ot.responsable, 55, currentY + 10, { align: "center" });
+
+    doc.setFont("helvetica", "bold");
+    doc.text("COORDINADOR / SUPERVISOR DE TALLER", 155, currentY + 5, { align: "center" });
+    doc.setFont("helvetica", "normal");
+    doc.text("Ing. Juan Carlos Alulema", 155, currentY + 10, { align: "center" });
+
+    doc.save(`OT_${ot.id}_${ot.equipoId}.pdf`);
+  } catch (err) {
+    console.error("Error al exportar OT en PDF:", err);
+    alert("Hubo un problema al generar el PDF de la Orden de Trabajo.");
   }
 }

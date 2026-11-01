@@ -128,6 +128,11 @@
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
           <span>Maquinaria e Inventario</span>
         </button>
+        <button class="nav-item" data-tab="plan" id="btn-tab-plan">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+          <span>Plan Maestro</span>
+          <span class="badge" style="font-size:0.65rem; background:linear-gradient(135deg, #10b981, #059669); color:white; padding:2px 6px; border-radius:10px;">RCM</span>
+        </button>
         <button class="nav-item admin-only" data-tab="preventivo" id="btn-tab-preventivo">
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
           <span>Mantenimiento Preventivo</span>
@@ -386,6 +391,325 @@
           <div class="equipment-grid" id="equipment-cards-grid">
             <!-- Dynamic Equipment Cards -->
           </div>
+        </section>
+
+
+        <!-- ==================== VIEW: PLAN MAESTRO DE MANTENIMIENTO ==================== -->
+        <section id="view-plan" class="tab-view">
+          
+          <!-- Header Banner & Action Buttons -->
+          <div class="plan-header-panel glass-panel">
+            <div class="plan-header-info">
+              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 0.25rem;">
+                <h2>Plan Maestro de Mantenimiento Integral</h2>
+                <span class="badge" style="background: linear-gradient(135deg, #10b981, #059669); color: white; font-weight: 700; font-size: 0.72rem; padding: 2px 8px; border-radius: 6px;">RCM & TPM 2026</span>
+              </div>
+              <p class="text-muted">Universidad Tecnológica Indoamérica · Planificación estratégica, criticidad ABC y órdenes de trabajo (OT) para los 5 talleres y laboratorios.</p>
+            </div>
+            <div class="plan-header-actions">
+              <button class="btn btn-secondary" id="btn-exportar-plan-pdf" style="display: inline-flex; align-items: center; gap: 6px;">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                Exportar Plan PDF
+              </button>
+              <button class="btn btn-primary admin-only" id="btn-nueva-ot" style="display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #2563eb, #1d4ed8); border:none; box-shadow: 0 4px 14px rgba(37,99,235,0.3);">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                Nueva Orden de Trabajo (OT)
+              </button>
+            </div>
+          </div>
+
+          <!-- KPI Cards Grid (Módulo 1) -->
+          <div class="plan-kpi-grid">
+            <div class="plan-kpi-card glass-panel">
+              <div class="plan-kpi-header">
+                <span class="plan-kpi-title">Cumplimiento del Plan</span>
+                <span class="plan-kpi-icon" style="color: #10b981;">🎯</span>
+              </div>
+              <div class="plan-kpi-val" id="plan-kpi-cumplimiento">95.4%</div>
+              <div class="plan-kpi-sub" id="plan-kpi-cumplimiento-sub">Tareas preventivas al día</div>
+              <div class="plan-progress-bar"><div class="plan-progress-fill" id="plan-progress-cumplimiento" style="width: 95.4%; background: #10b981;"></div></div>
+            </div>
+
+            <div class="plan-kpi-card glass-panel">
+              <div class="plan-kpi-header">
+                <span class="plan-kpi-title">Disponibilidad Global</span>
+                <span class="plan-kpi-icon" style="color: #3b82f6;">⚡</span>
+              </div>
+              <div class="plan-kpi-val" id="plan-kpi-disponibilidad">98.2%</div>
+              <div class="plan-kpi-sub" id="plan-kpi-disponibilidad-sub">274 de 279 activos operativos</div>
+              <div class="plan-progress-bar"><div class="plan-progress-fill" id="plan-progress-disponibilidad" style="width: 98.2%; background: #3b82f6;"></div></div>
+            </div>
+
+            <div class="plan-kpi-card glass-panel">
+              <div class="plan-kpi-header">
+                <span class="plan-kpi-title">MTBF (Tiempo sin Falla)</span>
+                <span class="plan-kpi-icon" style="color: #8b5cf6;">⏱️</span>
+              </div>
+              <div class="plan-kpi-val" id="plan-kpi-mtbf">720 hrs</div>
+              <div class="plan-kpi-sub">Operación continua promedio</div>
+              <div class="plan-progress-bar"><div class="plan-progress-fill" style="width: 88%; background: #8b5cf6;"></div></div>
+            </div>
+
+            <div class="plan-kpi-card glass-panel">
+              <div class="plan-kpi-header">
+                <span class="plan-kpi-title">MTTR (Tiempo Reparación)</span>
+                <span class="plan-kpi-icon" style="color: #f59e0b;">🔧</span>
+              </div>
+              <div class="plan-kpi-val" id="plan-kpi-mttr">2.4 hrs</div>
+              <div class="plan-kpi-sub">Resolución media de tickets</div>
+              <div class="plan-progress-bar"><div class="plan-progress-fill" style="width: 75%; background: #f59e0b;"></div></div>
+            </div>
+
+            <div class="plan-kpi-card glass-panel">
+              <div class="plan-kpi-header">
+                <span class="plan-kpi-title">Órdenes de Trabajo (OT)</span>
+                <span class="plan-kpi-icon" style="color: #ec4899;">📋</span>
+              </div>
+              <div class="plan-kpi-val" id="plan-kpi-ot-activas">3 activas</div>
+              <div class="plan-kpi-sub" id="plan-kpi-ot-cerradas">12 ejecutadas este mes</div>
+              <div class="plan-progress-bar"><div class="plan-progress-fill" style="width: 80%; background: #ec4899;"></div></div>
+            </div>
+          </div>
+
+          <!-- Plan Navigation Sub-Tabs -->
+          <div class="plan-subtabs-nav glass-panel">
+            <button class="plan-subtab-btn active" data-subtab="criticidad">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"></path><path d="M12 20V4"></path><path d="M6 20v-6"></path></svg>
+              1. Matriz de Criticidad (ABC)
+            </button>
+            <button class="plan-subtab-btn" data-subtab="cronograma">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+              2. Cronograma Maestro Anual
+            </button>
+            <button class="plan-subtab-btn" data-subtab="ordenes">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+              3. Órdenes de Trabajo (OT)
+            </button>
+            <button class="plan-subtab-btn" data-subtab="protocolos">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+              4. Protocolos Estándar (POE)
+            </button>
+          </div>
+
+          <!-- SUBMÓDULO 1: MATRIZ DE CRITICIDAD ABC -->
+          <div class="plan-subtab-content active" id="subtab-criticidad">
+            <div class="criticidad-summary-grid">
+              <div class="criticidad-summary-card crit-card-a">
+                <div class="crit-badge crit-badge-a">CRITICIDAD ALTA (CLASE A)</div>
+                <div class="crit-num" id="crit-count-a">18 Activos</div>
+                <p class="crit-desc">Máquinas neurálgicas (Tornos, Soldadoras MIG, Compresores, PLCs). Su falla paraliza clases o compromete la seguridad física. Mantenimiento mensual o bimestral estricto.</p>
+              </div>
+              <div class="criticidad-summary-card crit-card-b">
+                <div class="crit-badge crit-badge-b">CRITICIDAD MEDIA (CLASE B)</div>
+                <div class="crit-num" id="crit-count-b">84 Activos</div>
+                <p class="crit-desc">Equipos de apoyo importante (Taladros, Esmeriles, Variadores V20, Motores). Existen unidades alternas en taller. Mantenimiento trimestral sistemático.</p>
+              </div>
+              <div class="criticidad-summary-card crit-card-c">
+                <div class="crit-badge crit-badge-c">CRITICIDAD BAJA (CLASE C)</div>
+                <div class="crit-num" id="crit-count-c">177 Activos</div>
+                <p class="crit-desc">Herramientas menores, mobiliario ergonómico y accesorios auxiliares. Mantenimiento semestral o a la rotura con bajo impacto docente.</p>
+              </div>
+            </div>
+
+            <div class="filters-bar glass-panel" style="margin-top: 1rem;">
+              <div class="search-input-wrapper">
+                <svg class="search-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input type="text" id="crit-search" placeholder="Buscar equipo en la matriz de criticidad...">
+              </div>
+              <div class="filters-group">
+                <button class="filter-btn crit-filter-btn active" data-crit="todos">Todos</button>
+                <button class="filter-btn crit-filter-btn" data-crit="A">Clase A (Crítico)</button>
+                <button class="filter-btn crit-filter-btn" data-crit="B">Clase B (Importante)</button>
+                <button class="filter-btn crit-filter-btn" data-crit="C">Clase C (Bajo)</button>
+              </div>
+            </div>
+
+            <div class="table-container glass-panel" style="margin-top: 1rem;">
+              <table class="data-table" id="tabla-criticidad">
+                <thead>
+                  <tr>
+                    <th style="width: 100px;">Código</th>
+                    <th>Herramienta / Maquinaria</th>
+                    <th style="width: 140px;">Taller</th>
+                    <th style="width: 130px; text-align:center;">Criticidad RCM</th>
+                    <th style="width: 120px;">Frecuencia</th>
+                    <th style="width: 110px;">Estado</th>
+                    <th style="width: 130px; text-align: center;">Acción</th>
+                  </tr>
+                </thead>
+                <tbody id="criticidad-tbody">
+                  <!-- Rendered dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- SUBMÓDULO 2: CRONOGRAMA ANUAL / GANTT -->
+          <div class="plan-subtab-content" id="subtab-cronograma">
+            <div class="cronograma-toolbar glass-panel">
+              <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                <label style="font-weight:600; font-size:0.88rem; color:var(--text-primary);">📅 Período Académico:</label>
+                <select id="cronograma-periodo-select" style="padding: 0.4rem 0.8rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-surface); color: var(--text-primary); font-weight: 500;">
+                  <option value="anual">Año Completo 2026 (12 Meses)</option>
+                  <option value="sem1">Semestre 1 (Marzo - Julio 2026)</option>
+                  <option value="sem2">Semestre 2 (Agosto - Diciembre 2026)</option>
+                </select>
+              </div>
+              <div style="display: flex; gap: 1rem; align-items: center; flex-wrap:wrap; font-size: 0.8rem;">
+                <span style="display:flex; align-items:center; gap:5px;"><span style="width:12px; height:12px; border-radius:3px; background:#10b981;"></span> Preventivo Planificado</span>
+                <span style="display:flex; align-items:center; gap:5px;"><span style="width:12px; height:12px; border-radius:3px; background:#f59e0b;"></span> Parada Técnica / Mantenimiento Mayor</span>
+                <span style="display:flex; align-items:center; gap:5px;"><span style="width:12px; height:12px; border-radius:3px; background:#ef4444;"></span> Correctivo Urgente</span>
+              </div>
+            </div>
+
+            <div class="gantt-matrix-container glass-panel" style="margin-top: 1rem; overflow-x: auto;">
+              <table class="gantt-table" id="tabla-gantt-anual">
+                <thead>
+                  <tr>
+                    <th style="min-width: 220px; text-align: left;">Taller / Línea Técnica</th>
+                    <th style="min-width: 80px;">Ene</th>
+                    <th style="min-width: 80px;">Feb</th>
+                    <th style="min-width: 80px;">Mar</th>
+                    <th style="min-width: 80px;">Abr</th>
+                    <th style="min-width: 80px;">May</th>
+                    <th style="min-width: 80px;">Jun</th>
+                    <th style="min-width: 80px;">Jul</th>
+                    <th style="min-width: 80px;">Ago</th>
+                    <th style="min-width: 80px;">Sep</th>
+                    <th style="min-width: 80px;">Oct</th>
+                    <th style="min-width: 80px;">Nov</th>
+                    <th style="min-width: 80px;">Dic</th>
+                  </tr>
+                </thead>
+                <tbody id="gantt-tbody">
+                  <!-- Rendered dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- SUBMÓDULO 3: ÓRDENES DE TRABAJO (OT) -->
+          <div class="plan-subtab-content" id="subtab-ordenes">
+            <div class="filters-bar glass-panel">
+              <div class="search-input-wrapper">
+                <svg class="search-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input type="text" id="ot-search" placeholder="Buscar orden de trabajo por código, equipo o técnico...">
+              </div>
+              <div class="filters-group">
+                <button class="filter-btn ot-filter-btn active" data-estado="todos">Todas las OTs</button>
+                <button class="filter-btn ot-filter-btn" data-estado="Abierta">Abiertas</button>
+                <button class="filter-btn ot-filter-btn" data-estado="En Proceso">En Proceso</button>
+                <button class="filter-btn ot-filter-btn" data-estado="Completada">Completadas</button>
+              </div>
+              <button class="btn btn-primary admin-only" id="btn-crear-ot-toolbar" style="margin-left: auto;">
+                ➕ Crear OT
+              </button>
+            </div>
+
+            <div class="ot-grid" id="ot-cards-grid" style="margin-top: 1rem;">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+
+          <!-- SUBMÓDULO 4: PROTOCOLOS POE & CHECKLISTS -->
+          <div class="plan-subtab-content" id="subtab-protocolos">
+            <div class="poe-grid">
+              
+              <!-- POE 1: Torneado y Mecanizado -->
+              <div class="poe-card glass-panel">
+                <div class="poe-header">
+                  <div class="poe-badge">POE-MEC-01</div>
+                  <h3>Mecanizado por Arranque de Viruta (Tornos y Fresadoras)</h3>
+                  <p class="text-muted">Aplica a: Torno Horizontal 1m (EQU00306), Fresadora Universal y Taladros de Banco.</p>
+                </div>
+                <div class="poe-meta">
+                  <span><strong>Frecuencia:</strong> Mensual / Trimestral</span>
+                  <span><strong>Responsable:</strong> Ing. Juan Ayala</span>
+                  <span><strong>EPP Obligatorio:</strong> Gafas de seguridad, botas punta de acero, sin ropa holgada.</span>
+                </div>
+                <div class="poe-checklist">
+                  <h4>Puntos Críticos de Verificación:</h4>
+                  <ul>
+                    <li>✔ <strong>Bancada y Guías:</strong> Limpieza profunda de viruta acumulada, lubricación con aceite para guías ISO VG 68.</li>
+                    <li>✔ <strong>Caja de Velocidades:</strong> Comprobación de nivel y mirilla de lubricante; inspección de ruidos o vibraciones anómalas engranajes.</li>
+                    <li>✔ <strong>Alineación y Holguras:</strong> Ajuste de regletas en carro transversal y charriot para eliminar juegos axiales.</li>
+                    <li>✔ <strong>Seguridad Eléctrica:</strong> Verificación de microrruptor de protección del mandril y pedal de parada de emergencia.</li>
+                  </ul>
+                </div>
+              </div>
+
+              <!-- POE 2: Soldadura y Procesos Térmicos -->
+              <div class="poe-card glass-panel">
+                <div class="poe-header">
+                  <div class="poe-badge">POE-SOL-02</div>
+                  <h3>Equipos de Soldadura (MIG/MAG, Arco y Oxicorte)</h3>
+                  <p class="text-muted">Aplica a: Soldadoras Industriales Ing-co MAG/MIG 2508 (SOL00004 a SOL00006) y Cilindros de CO2.</p>
+                </div>
+                <div class="poe-meta">
+                  <span><strong>Frecuencia:</strong> Quincenal / Mensual</span>
+                  <span><strong>Responsable:</strong> Técnico Soldadura</span>
+                  <span><strong>EPP Obligatorio:</strong> Máscara fotosensible #10-#12, delantal y guantes de cuero largos.</span>
+                </div>
+                <div class="poe-checklist">
+                  <h4>Puntos Críticos de Verificación:</h4>
+                  <ul>
+                    <li>✔ <strong>Mangueras y Gas:</strong> Detección de fugas en conexiones de CO2/Argón con agua jabonosa; ajuste de regulador/flowmeter.</li>
+                    <li>✔ <strong>Sistema de Devanador:</strong> Limpieza de rodillos de arrastre de alambre, ajuste de tensión y verificación de tobera de contacto.</li>
+                    <li>✔ <strong>Aislamiento y Cables:</strong> Inspección de cables de potencia y pinza de masa sin cortes ni cobre expuesto.</li>
+                    <li>✔ <strong>Ventilación de Fuente:</strong> Soplado de polvo metálico en rejillas del ventilador de refrigeración con aire seco.</li>
+                  </ul>
+                </div>
+              </div>
+
+              <!-- POE 3: Neumática e Hidráulica -->
+              <div class="poe-card glass-panel">
+                <div class="poe-header">
+                  <div class="poe-badge">POE-NEU-03</div>
+                  <h3>Sistemas Neumáticos, Actuadores y Compresión</h3>
+                  <p class="text-muted">Aplica a: Compresores, Unidades de Mantenimiento FRL, Válvulas y Cilindros Neumáticos.</p>
+                </div>
+                <div class="poe-meta">
+                  <span><strong>Frecuencia:</strong> Mensual</span>
+                  <span><strong>Responsable:</strong> Ing. Christian Iza</span>
+                  <span><strong>EPP Obligatorio:</strong> Gafas protectoras de impacto, protección auditiva en compresión.</span>
+                </div>
+                <div class="poe-checklist">
+                  <h4>Puntos Críticos de Verificación:</h4>
+                  <ul>
+                    <li>✔ <strong>Drenaje de FRL:</strong> Purga manual/automática de agua condensada en vasos de filtro para evitar corrosión interna.</li>
+                    <li>✔ <strong>Presión de Calibración:</strong> Verificación de manómetro regulador en rango de operación seguro (4 - 6 Bar).</li>
+                    <li>✔ <strong>Estanqueidad de Línea:</strong> Inspección acústica de fugas en racores rápidos y mangueras de poliuretano.</li>
+                    <li>✔ <strong>Lubricación de Vástagos:</strong> Inspección de rayaduras y lubricación de empaquetaduras de cilindros de doble efecto.</li>
+                  </ul>
+                </div>
+              </div>
+
+              <!-- POE 4: Automatización y Eléctrico -->
+              <div class="poe-card glass-panel">
+                <div class="poe-header">
+                  <div class="poe-badge">POE-AUT-04</div>
+                  <h3>Tableros de Control, PLCs Siemens S7-1200 y Variadores</h3>
+                  <p class="text-muted">Aplica a: PLCs S7-1200 (EQU00694 a EQU00700), Variadores V20 y Fuentes Delta.</p>
+                </div>
+                <div class="poe-meta">
+                  <span><strong>Frecuencia:</strong> Trimestral / Semestral</span>
+                  <span><strong>Responsable:</strong> Especialista Automatización</span>
+                  <span><strong>EPP Obligatorio:</strong> Calzado dieléctrico, herramientas aisladas 1000V.</span>
+                </div>
+                <div class="poe-checklist">
+                  <h4>Puntos Críticos de Verificación:</h4>
+                  <ul>
+                    <li>✔ <strong>Termografía y Reapriete:</strong> Detección de puntos calientes en borneras; apriete de tornillería en contactores y disyuntores.</li>
+                    <li>✔ <strong>Tensión de Señales:</strong> Medición con multímetro de riel de 24V DC y alimentación trifásica 220V AC.</li>
+                    <li>✔ <strong>Estado de Comunicación:</strong> Comprobación de LEDs diagnósticos en switches Scalance XB005 y puertos PROFINET.</li>
+                    <li>✔ <strong>Limpieza de Enclosure:</strong> Aspirado de polvo no conductor y sustitución de filtros en ventiladores del gabinete.</li>
+                  </ul>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
         </section>
 
 
@@ -1013,6 +1337,83 @@
           </button>
         </div>
       </div>
+    </div>
+  <!-- Modal: Crear / Editar Orden de Trabajo (OT) -->
+  <div class="modal-overlay" id="modal-nueva-ot">
+    <div class="modal-card animate-scale-in" style="max-width: 650px;">
+      <div class="modal-header">
+        <h2 id="modal-ot-title">Emitir Nueva Orden de Trabajo (OT)</h2>
+        <button class="modal-close-btn">&times;</button>
+      </div>
+      <form id="form-nueva-ot" class="modal-form">
+        <input type="hidden" id="ot-id-original">
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="ot-codigo">Código de Orden (Auto)</label>
+            <input type="text" id="ot-codigo" readonly style="font-family:monospace; background: var(--bg-hover);">
+          </div>
+          <div class="form-group">
+            <label for="ot-tipo">Tipo de Mantenimiento *</label>
+            <select id="ot-tipo" required>
+              <option value="Preventivo Programado">📅 Preventivo Programado</option>
+              <option value="Predictivo / Inspección">🔍 Predictivo / Inspección Técnica</option>
+              <option value="Correctivo Urgente">🚨 Correctivo Urgente</option>
+              <option value="Calibración y Ajuste">⚖️ Calibración y Ajuste</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="ot-equipo">Equipo / Activo a Intervenir *</label>
+          <select id="ot-equipo" required style="width: 100%;">
+            <!-- Populated dynamically -->
+          </select>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="ot-criticidad">Prioridad / Criticidad *</label>
+            <select id="ot-criticidad" required>
+              <option value="A">🔴 Alta (Clase A - Crítico)</option>
+              <option value="B" selected>🟡 Media (Clase B - Importante)</option>
+              <option value="C">🟢 Baja (Clase C - Secundario)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="ot-responsable">Técnico / Responsable *</label>
+            <input type="text" id="ot-responsable" placeholder="Ej: Ing. Juan Ayala" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="ot-fecha-programada">Fecha Programada *</label>
+            <input type="date" id="ot-fecha-programada" required>
+          </div>
+          <div class="form-group">
+            <label for="ot-horas-estimadas">Tiempo Estimado (Horas)</label>
+            <input type="number" id="ot-horas-estimadas" min="0.5" step="0.5" value="2.0" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="ot-insumos">Repuestos e Insumos Requeridos</label>
+          <input type="text" id="ot-insumos" placeholder="Ej: Aceite ISO VG 68 (1L), Grasa de litio, Gafas de protección">
+        </div>
+
+        <div class="form-group">
+          <label for="ot-instrucciones">Instrucciones y Protocolos de Ejecución (Uno por línea) *</label>
+          <textarea id="ot-instrucciones" rows="3" placeholder="Inspección visual y limpieza general&#10;Ajuste de holguras y lubricación&#10;Prueba funcional de parada de emergencia" required></textarea>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary modal-cancel-btn">Cancelar</button>
+          <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); border:none; color:white;">
+            💾 Emitir Orden de Trabajo
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 
