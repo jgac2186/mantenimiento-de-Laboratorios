@@ -1,8 +1,13 @@
-const CACHE_NAME = 'mantolab-v14';
+const CACHE_NAME = 'mantolab-v15';
 const ASSETS = [
   './',
   './index.html',
   './style.css',
+  './logo_data.js',
+  './logo-horizontal.png',
+  './logo-horizontal-trans.png',
+  './logo-horizontal-white.png',
+  './logo-vertical.png',
   './inventario_data.js',
   './app.js',
   './manifest.json',

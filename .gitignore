@@ -14,3 +14,7 @@ db.properties
 
 # Log files
 *.log
+scratch/
+image1.jpeg
+logo-uti.png
+

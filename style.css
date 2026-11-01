@@ -7,23 +7,32 @@
   --font-title: 'Outfit', sans-serif;
   --font-body: 'Inter', sans-serif;
 
-  /* Color Palette - Premium Warm Pastel & Cream Theme */
-  --bg-app: #f8f6f0;
-  --bg-sidebar: #f1ede4;
+  /* Color Palette - Universidad Indoamérica Institutional Theme */
+  --uti-purple: #3C2565; /* Morado Institucional UTI (Pantone P 97-16 C) */
+  --uti-purple-dark: #271444;
+  --uti-purple-light: #523588;
+  --uti-orange: #F15A24; /* Naranja Institucional UTI */
+  --uti-orange-hover: #D94814;
+  --uti-orange-light: #FDF0EB;
+
+  --bg-app: #f8f6fa;
+  --bg-sidebar: #f2eef7;
   --bg-panel: #ffffff;
   --bg-card: #ffffff;
-  --border-color: #e2dcce;
-  --border-color-glow: rgba(13, 148, 136, 0.25);
+  --border-color: #e5dfec;
+  --border-color-glow: rgba(60, 37, 101, 0.2);
   
   --color-border: var(--border-color);
   --color-text-primary: var(--text-primary);
   --color-text-secondary: var(--text-secondary);
 
-  --color-primary: #10b981; /* Pastel Sage / Emerald */
-  --color-primary-glow: rgba(16, 185, 129, 0.15);
-  --color-secondary: #0284c7; /* Soft Sky Blue */
-  --color-accent: #6366f1; /* Pastel Indigo */
-  --color-accent-light: rgba(99, 102, 241, 0.12);
+  --color-primary: #3C2565; /* Morado Institucional UTI */
+  --color-primary-hover: #271444;
+  --color-primary-glow: rgba(60, 37, 101, 0.2);
+  --color-secondary: #F15A24; /* Naranja Institucional UTI */
+  --color-secondary-glow: rgba(241, 90, 36, 0.25);
+  --color-accent: #F15A24;
+  --color-accent-light: rgba(241, 90, 36, 0.12);
   
   --color-success: #059669;
   --color-success-light: #dcfce7;
@@ -31,12 +40,12 @@
   --color-warning-light: #fef3c7;
   --color-danger: #e11d48;
   --color-danger-light: #ffe4e6;
-  --color-info: #0284c7;
-  --color-info-light: #e0f2fe;
+  --color-info: #3C2565;
+  --color-info-light: rgba(60, 37, 101, 0.08);
   
-  --text-primary: #1e293b;
-  --text-secondary: #475569;
-  --text-muted: #64748b;
+  --text-primary: #1e1b26;
+  --text-secondary: #474354;
+  --text-muted: #6b667a;
   
   --radius-sm: 8px;
   --radius-md: 14px;
@@ -129,19 +138,47 @@ h1, h2, h3, h4, h5, h6 {
 
 .logo {
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
 }
 
-.logo-icon {
-  filter: drop-shadow(0 0 8px rgba(6, 182, 212, 0.4));
+.sidebar-uti-logo {
+  max-width: 195px;
+  max-height: 48px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+
+.sidebar-brand-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(60, 37, 101, 0.08);
+  border: 1px solid rgba(60, 37, 101, 0.15);
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--uti-purple);
+  letter-spacing: 0.02em;
+}
+
+.sidebar-brand-badge span {
+  background: var(--uti-orange);
+  color: white;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 0.68rem;
+  font-weight: 800;
 }
 
 .logo-text {
   font-family: var(--font-title);
-  font-size: 1.5rem;
+  font-size: 1.35rem;
   font-weight: 800;
-  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  background: linear-gradient(135deg, var(--uti-purple), var(--uti-orange));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -239,9 +276,9 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .nav-item.active {
-  background: rgba(16, 185, 129, 0.12);
-  color: #065f46;
-  border-left: 3px solid var(--color-primary);
+  background: rgba(60, 37, 101, 0.08);
+  color: var(--uti-purple);
+  border-left: 4px solid var(--uti-orange);
   font-weight: 600;
 }
 
@@ -381,16 +418,31 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  background: linear-gradient(135deg, var(--uti-purple), var(--uti-purple-light));
   color: #ffffff;
   border: none;
-  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);
+  box-shadow: 0 4px 14px rgba(60, 37, 101, 0.25);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
+  background: linear-gradient(135deg, var(--uti-purple-dark), var(--uti-purple));
+  box-shadow: 0 6px 20px rgba(60, 37, 101, 0.35);
+}
+
+.btn-accent, .btn-uti-orange {
+  background: linear-gradient(135deg, var(--uti-orange), var(--uti-orange-hover));
+  color: #ffffff;
+  border: none;
+  box-shadow: 0 4px 14px rgba(241, 90, 36, 0.3);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+.btn-accent:hover, .btn-uti-orange:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, var(--uti-orange-hover), #bf3a0e);
+  box-shadow: 0 6px 20px rgba(241, 90, 36, 0.4);
 }
 
 .btn-secondary {

@@ -671,7 +671,7 @@ function registrarServiceWorker() {
   if ('caches' in window) {
     caches.keys().then(names => {
       names.forEach(name => {
-        if (name !== 'mantolab-v14') caches.delete(name);
+        if (name !== 'mantolab-v15') caches.delete(name);
       });
     });
   }
@@ -2520,44 +2520,37 @@ function exportarReporteMensual() {
   doc.setFillColor(79, 70, 229);
   doc.rect(15, 15, 185.9, 1.5, 'F');
 
-  // --- ENCABEZADO ---
-  // Logo / Icono
-  doc.setFillColor(79, 70, 229);
-  doc.roundedRect(15, 20, 10, 10, 1.5, 1.5, 'F');
-  
-  // Dibujar un check blanco simple en el logo
-  doc.setDrawColor(255, 255, 255);
-  doc.setLineWidth(0.8);
-  doc.line(18, 25, 20, 27);
-  doc.line(20, 27, 24, 23);
+  // Cabecera Oficial con Logo Institucional UTI
+  const logoColor = (typeof window !== "undefined" && window.LOGO_INDOAMERICA_B64) || (typeof LOGO_INDOAMERICA_B64 !== "undefined" ? LOGO_INDOAMERICA_B64 : null);
+  if (logoColor) {
+    try {
+      doc.addImage(logoColor, "PNG", 15, 8, 48, 13.3);
+    } catch (eLogo) {
+      console.warn("Logo en reporte mensual:", eLogo);
+    }
+  }
 
-  // Nombre de la marca
-  doc.setFont("Helvetica", "bold");
-  doc.setFontSize(18);
-  doc.setTextColor(30, 41, 59);
-  doc.text("MantoLab", 28, 26);
-
-  doc.setFont("Helvetica", "normal");
-  doc.setFontSize(8.5);
-  doc.setTextColor(100, 116, 139);
-  doc.text("Control de Mantenimiento Inteligente", 28, 30);
-
-  // Metadatos a la derecha
+  // Metadatos institucionales a la derecha
   doc.setFont("Helvetica", "bold");
   doc.setFontSize(10.5);
-  doc.setTextColor(30, 41, 59);
-  doc.text("REPORTE DE ACTIVIDADES", 132, 23);
+  doc.setTextColor(60, 37, 101); // Morado Institucional UTI
+  doc.text("REPORTE MENSUAL DE MANTENIMIENTO", 200.9, 13, { align: "right" });
+
+  doc.setFont("Helvetica", "bold");
+  doc.setFontSize(8);
+  doc.setTextColor(241, 90, 36); // Naranja Institucional UTI
+  doc.text("FACULTAD DE INGENIERÍA Y CIENCIAS APLICADAS", 200.9, 18, { align: "right" });
 
   doc.setFont("Helvetica", "normal");
-  doc.setFontSize(8.5);
+  doc.setFontSize(7.5);
   doc.setTextColor(100, 116, 139);
-  doc.text(`Periodo: ${nombreMes} de ${yyyy}`, 132, 27.5);
-  doc.text(`Generado: ${HOY_SISTEMA.toLocaleDateString("es-ES")}`, 132, 32);
+  doc.text(`Periodo: ${nombreMes} de ${yyyy} | Emisión: ${HOY_SISTEMA.toLocaleDateString("es-ES")}`, 200.9, 23, { align: "right" });
 
-  // Separador
-  doc.setDrawColor(226, 232, 240);
-  doc.setLineWidth(0.4);
-  doc.line(15, 36, 200.9, 36);
+  // Separador de diseño institucional
+  doc.setFillColor(60, 37, 101);
+  doc.rect(15, 27, 185.9, 1.2, "F");
+  doc.setFillColor(241, 90, 36);
+  doc.rect(15, 28.2, 45, 1.2, "F");
 
   // --- RESUMEN EJECUTIVO (TARJETAS) ---
   const totalActividades = actividadesDelMes.length;
@@ -2647,7 +2640,7 @@ function exportarReporteMensual() {
       overflow: 'linebreak'
     },
     headStyles: {
-      fillColor: [79, 70, 229], // Indigo primary (#4F46E5)
+      fillColor: [60, 37, 101], // Morado Institucional UTI (#3C2565)
       textColor: [255, 255, 255],
       fontStyle: 'bold'
     },
@@ -3237,20 +3230,35 @@ function exportarActaInventarioFisicoPDF() {
     const selectedWorkshop = workshopFilterEl ? workshopFilterEl.value : (state.activeWorkshop || "todos");
     const tallerNombre = getNombreTaller(selectedWorkshop);
 
-    // Encabezado institucional
-    doc.setFillColor(15, 23, 42); // Navy Dark
-    doc.rect(0, 0, 210, 26, "F");
+    // Cabecera Institucional Oficial con Logo y Colores UTI
+    doc.setFillColor(60, 37, 101); // Morado Institucional UTI (#3C2565)
+    doc.rect(0, 0, 210, 27, "F");
+    doc.setFillColor(241, 90, 36); // Naranja Institucional UTI (#F15A24)
+    doc.rect(0, 27, 210, 1.8, "F");
+
+    const logoWhiteInv = (typeof window !== "undefined" && window.LOGO_INDOAMERICA_WHITE_B64) || (typeof LOGO_INDOAMERICA_WHITE_B64 !== "undefined" ? LOGO_INDOAMERICA_WHITE_B64 : null);
+    if (logoWhiteInv) {
+      try {
+        doc.addImage(logoWhiteInv, "PNG", 12, 5.5, 46, 12.8);
+      } catch (eLogo) {
+        console.warn("Logo en acta de inventario:", eLogo);
+      }
+    }
 
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(13);
-    doc.text("UNIVERSIDAD TECNOLÓGICA INDOAMÉRICA", 105, 10, { align: "center" });
+    doc.setFontSize(11);
+    doc.text("UNIVERSIDAD TECNOLÓGICA INDOAMÉRICA", 196, 9.5, { align: "right" });
 
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(8.5);
-    doc.text(`FACULTAD DE INGENIERÍA Y CIENCIAS APLICADAS · ${tallerNombre.toUpperCase()}`, 105, 16, { align: "center" });
+    doc.setFont("helvetica", "bold");
     doc.setFontSize(8);
-    doc.text("ACTA DE CONSTATACIÓN E INVENTARIO FÍSICO DE MAQUINARIA, EQUIPOS Y HERRAMIENTAS", 105, 21, { align: "center" });
+    doc.setTextColor(247, 186, 153);
+    doc.text(`FACULTAD DE INGENIERÍA Y CIENCIAS APLICADAS · ${tallerNombre.toUpperCase()}`, 196, 15, { align: "right" });
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    doc.text("ACTA DE CONSTATACIÓN E INVENTARIO FÍSICO DE ACTIVOS Y HERRAMIENTAS", 196, 20.5, { align: "right" });
 
     // Metadatos
     doc.setTextColor(30, 41, 59);
@@ -3306,7 +3314,7 @@ function exportarActaInventarioFisicoPDF() {
         body: rows,
         theme: "grid",
         headStyles: {
-          fillColor: [16, 185, 129],
+          fillColor: [60, 37, 101], // Morado Institucional UTI (#3C2565)
           textColor: 255,
           fontStyle: "bold",
           fontSize: 8,
@@ -4723,21 +4731,35 @@ function exportarPlanMaestroPDF() {
     const fechaEmision = new Date().toLocaleDateString('es-EC', { day: '2-digit', month: 'long', year: 'numeric' });
     const tallerNombre = getNombreTaller(state.activeWorkshop || "todos");
 
-    // Cabecera Institucional
-    doc.setFillColor(15, 23, 42); // Navy Dark UTI
-    doc.rect(0, 0, 210, 28, "F");
+    // Cabecera Institucional Oficial con Logo y Colores UTI
+    doc.setFillColor(60, 37, 101); // Morado Institucional UTI (#3C2565)
+    doc.rect(0, 0, 210, 27, "F");
+    doc.setFillColor(241, 90, 36); // Naranja Institucional UTI (#F15A24)
+    doc.rect(0, 27, 210, 1.8, "F");
+
+    const logoWhitePlan = (typeof window !== "undefined" && window.LOGO_INDOAMERICA_WHITE_B64) || (typeof LOGO_INDOAMERICA_WHITE_B64 !== "undefined" ? LOGO_INDOAMERICA_WHITE_B64 : null);
+    if (logoWhitePlan) {
+      try {
+        doc.addImage(logoWhitePlan, "PNG", 12, 5.5, 46, 12.8);
+      } catch (eLogo) {
+        console.warn("Logo en Plan Maestro PDF:", eLogo);
+      }
+    }
 
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(13);
-    doc.text("UNIVERSIDAD TECNOLÓGICA INDOAMÉRICA", 105, 10, { align: "center" });
+    doc.setFontSize(11);
+    doc.text("UNIVERSIDAD TECNOLÓGICA INDOAMÉRICA", 196, 9.5, { align: "right" });
 
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(8.5);
-    doc.text(`FACULTAD DE INGENIERÍA Y CIENCIAS APLICADAS · ${tallerNombre.toUpperCase()}`, 105, 16, { align: "center" });
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    doc.setTextColor(247, 186, 153);
+    doc.text(`FACULTAD DE INGENIERÍA Y CIENCIAS APLICADAS · ${tallerNombre.toUpperCase()}`, 196, 15, { align: "right" });
+
+    doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(8.5);
-    doc.text("PLAN MAESTRO DE MANTENIMIENTO INTEGRAL (RCM / TPM) · AÑO 2026", 105, 22, { align: "center" });
+    doc.text("PLAN MAESTRO DE MANTENIMIENTO INTEGRAL (RCM / TPM) · AÑO 2026", 196, 20.5, { align: "right" });
 
     // Resumen Ejecutivo de Indicadores (KPIs)
     doc.setDrawColor(203, 213, 225);
@@ -4788,7 +4810,7 @@ function exportarPlanMaestroPDF() {
         head: [["Código", "Activo / Maquinaria", "Taller / Lab", "Criticidad", "Estrategia RCM", "Frec.", "Estado"]],
         body: rows,
         theme: "striped",
-        headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: "bold", fontSize: 7.5 },
+        headStyles: { fillColor: [60, 37, 101], textColor: [255, 255, 255], fontStyle: "bold", fontSize: 7.5 },
         styles: { fontSize: 7, cellPadding: 2 },
         columnStyles: {
           0: { cellWidth: 18 },
@@ -4845,21 +4867,35 @@ function imprimirOrdenTrabajoPDF(idOT) {
   try {
     const doc = new jsPDFLib({ orientation: "portrait", unit: "mm", format: "a4" });
 
-    // Cabecera Institucional
-    doc.setFillColor(15, 23, 42); // Navy Dark UTI
-    doc.rect(0, 0, 210, 28, "F");
+    // Cabecera Institucional Oficial con Logo y Colores UTI
+    doc.setFillColor(60, 37, 101); // Morado Institucional UTI (#3C2565)
+    doc.rect(0, 0, 210, 27, "F");
+    doc.setFillColor(241, 90, 36); // Naranja Institucional UTI (#F15A24)
+    doc.rect(0, 27, 210, 1.8, "F");
+
+    const logoWhiteOT = (typeof window !== "undefined" && window.LOGO_INDOAMERICA_WHITE_B64) || (typeof LOGO_INDOAMERICA_WHITE_B64 !== "undefined" ? LOGO_INDOAMERICA_WHITE_B64 : null);
+    if (logoWhiteOT) {
+      try {
+        doc.addImage(logoWhiteOT, "PNG", 12, 5.5, 46, 12.8);
+      } catch (eLogo) {
+        console.warn("Logo en OT PDF:", eLogo);
+      }
+    }
 
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(13);
-    doc.text("UNIVERSIDAD TECNOLÓGICA INDOAMÉRICA", 105, 11, { align: "center" });
+    doc.setFontSize(11);
+    doc.text("UNIVERSIDAD TECNOLÓGICA INDOAMÉRICA", 196, 9.5, { align: "right" });
 
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
-    doc.text("FACULTAD DE INGENIERÍA Y CIENCIAS APLICADAS · DIRECCIÓN DE TALLERES", 105, 17, { align: "center" });
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(9.5);
-    doc.text(`ORDEN DE TRABAJO TÉCNICA · ${ot.id}`, 105, 23, { align: "center" });
+    doc.setFontSize(8);
+    doc.setTextColor(247, 186, 153);
+    doc.text("FACULTAD DE INGENIERÍA Y CIENCIAS APLICADAS · DIRECCIÓN DE TALLERES", 196, 15, { align: "right" });
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8.5);
+    doc.text(`ORDEN DE TRABAJO TÉCNICA · ${ot.id}`, 196, 20.5, { align: "right" });
 
     // Cuadro de Datos Principales
     doc.setDrawColor(203, 213, 225);
@@ -4948,7 +4984,7 @@ function imprimirOrdenTrabajoPDF(idOT) {
         head: [["Estado", "Descripción de la Tarea / Actividad", "Conformidad"]],
         body: checklistRows,
         theme: "grid",
-        headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: "bold", fontSize: 8 },
+        headStyles: { fillColor: [60, 37, 101], textColor: [255, 255, 255], fontStyle: "bold", fontSize: 8 },
         styles: { fontSize: 8, cellPadding: 2 },
         columnStyles: {
           0: { cellWidth: 18, halign: "center" },

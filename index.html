@@ -6,10 +6,10 @@
   <title>MantoLab - Control de Mantenimiento</title>
   
   <!-- SEO & PWA Meta Tags -->
-  <meta name="description" content="Sistema inteligente y offline para control de mantenimiento de laboratorios y talleres.">
-  <meta name="theme-color" content="#f8f6f0">
+  <meta name="description" content="Sistema inteligente y offline para control de mantenimiento de laboratorios y talleres de la Universidad Indoamérica.">
+  <meta name="theme-color" content="#3C2565">
   <link rel="manifest" href="manifest.json">
-  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <link rel="icon" type="image/png" href="logo-horizontal-trans.png">
   <link rel="apple-touch-icon" href="icon.svg">
   
   <!-- Google Fonts - Outfit & Inter -->
@@ -25,14 +25,12 @@
   <!-- Screen: Login / Registration -->
   <div id="login-screen" class="login-overlay">
     <div class="login-card animate-scale-in">
-      <div class="login-header">
-        <div class="login-logo">
-          <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="var(--color-accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
-          </svg>
-          <h2>MantoLab</h2>
+      <div class="login-header" style="text-align: center;">
+        <img src="logo-horizontal-trans.png" alt="Universidad Indoamérica" style="max-height: 52px; width: auto; object-fit: contain; margin-bottom: 0.75rem;">
+        <div class="login-logo" style="justify-content: center; gap: 8px;">
+          <h2 style="color: var(--uti-purple, #3C2565); font-weight: 700;">MantoLab</h2>
         </div>
-        <p class="text-muted">Control de Mantenimiento y Reservas de Laboratorio</p>
+        <p class="text-muted" style="font-size: 0.85rem; margin-top: 4px;">Facultad de Ingeniería y Ciencias Aplicadas</p>
       </div>
 
       <!-- Tab Buttons for Login / Register -->
@@ -88,18 +86,10 @@
     <aside class="sidebar" id="app-sidebar">
       <div class="sidebar-header">
         <div class="logo">
-          <svg class="logo-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="32" height="32">
-            <defs>
-              <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" style="stop-color:#10b981;" />
-                <stop offset="100%" style="stop-color:#06b6d4;" />
-              </linearGradient>
-            </defs>
-            <circle cx="256" cy="256" r="240" fill="none" stroke="url(#logoGrad)" stroke-width="32" />
-            <path d="M192,256 L320,256" stroke="url(#logoGrad)" stroke-width="40" stroke-linecap="round" />
-            <path d="M256,192 L256,320" stroke="url(#logoGrad)" stroke-width="40" stroke-linecap="round" />
-          </svg>
-          <span class="logo-text">Manto<span>Lab</span></span>
+          <img src="logo-horizontal-trans.png" alt="Universidad Indoamérica" class="sidebar-uti-logo">
+          <div class="sidebar-brand-badge">
+            <span>MantoLab</span> Talleres y Labs
+          </div>
         </div>
       </div>
       
@@ -197,6 +187,25 @@
 
         <!-- ==================== VIEW: DASHBOARD ==================== -->
         <section id="view-dashboard" class="tab-view active">
+
+          <!-- === BANNER INSTITUCIONAL OFICIAL (UNIVERSIDAD INDOAMÉRICA) === -->
+          <div class="institutional-hero-banner glass-panel animate-fade-in" style="margin-bottom: 1.5rem; padding: 1.25rem 1.75rem; border-left: 5px solid var(--uti-orange, #F15A24); background: linear-gradient(135deg, rgba(60, 37, 101, 0.05) 0%, rgba(241, 90, 36, 0.04) 100%); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+            <div style="display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap;">
+              <img src="logo-horizontal-trans.png" alt="Universidad Indoamérica" style="height: 48px; width: auto; object-fit: contain;">
+              <div>
+                <h2 style="font-family: var(--font-title); font-size: 1.15rem; font-weight: 700; color: var(--uti-purple, #3C2565); margin: 0; line-height: 1.3;">
+                  Facultad de Ingeniería y Ciencias Aplicadas
+                </h2>
+                <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 3px 0 0 0;">
+                  Sistema Integrado de Control y Mantenimiento Técnico de Laboratorios y Talleres (MantoLab)
+                </p>
+              </div>
+            </div>
+            <div style="background: rgba(60, 37, 101, 0.08); border: 1px solid rgba(60, 37, 101, 0.18); padding: 6px 14px; border-radius: 20px; font-size: 0.76rem; font-weight: 600; color: var(--uti-purple, #3C2565); display: flex; align-items: center; gap: 8px;">
+              <span style="width: 8px; height: 8px; border-radius: 50%; background: #F15A24; display: inline-block;"></span>
+              Campus Ambato · Sede Quito · Latacunga
+            </div>
+          </div>
 
           <!-- === MÉTRICAS: contenido dinámico según rol === -->
           <div id="dash-metrics-admin" class="metrics-grid">
@@ -1428,7 +1437,8 @@
     }
   </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
-  <script src="inventario_data.js?v=20261101_v14"></script>
-  <script src="app.js?v=20261101_v14"></script>
+  <script src="logo_data.js?v=20261101_v15"></script>
+  <script src="inventario_data.js?v=20261101_v15"></script>
+  <script src="app.js?v=20261101_v15"></script>
 </body>
 </html>
